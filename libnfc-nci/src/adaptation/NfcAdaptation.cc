@@ -324,7 +324,15 @@ class NfcAidlClientCallback
         break;
       case NfcAidlEvent::ERROR:
       default:
+#if (NXP_EXTNS == TRUE)
+        if ((int)event == HAL_NFC_FW_UPDATE_STATUS_EVT) {
+          e_num = HAL_NFC_FW_UPDATE_STATUS_EVT;
+        } else {
+          e_num = HAL_NFC_ERROR_EVT;
+        }
+#else
         e_num = HAL_NFC_ERROR_EVT;
+#endif
     }
     switch (event_status) {
       case NfcAidlStatus::OK:
@@ -1227,14 +1235,22 @@ void NfcAdaptation::HalDownloadFirmwareCallback(nfc_event_t event,
   const char* func = "NfcAdaptation::HalDownloadFirmwareCallback";
   LOG(VERBOSE) << StringPrintf("%s: event=0x%X", func, event);
   switch (event) {
+#if (NXP_EXTNS == TRUE)
+    case HAL_NFC_FW_UPDATE_STATUS_EVT:
+      LOG(INFO)
+          << StringPrintf("%s: HAL_NFC_FW_UPDATE_STATUS_EVT", func);
+      break;
+#endif
     case HAL_NFC_OPEN_CPLT_EVT: {
-      LOG(VERBOSE) << StringPrintf("%s: HAL_NFC_OPEN_CPLT_EVT", func);
+      LOG(INFO)
+          << StringPrintf("%s: HAL_NFC_OPEN_CPLT_EVT", func);
       if (event_status == HAL_NFC_STATUS_OK) isDownloadFirmwareCompleted = true;
       mHalOpenCompletedEvent.signal();
       break;
     }
     case HAL_NFC_CLOSE_CPLT_EVT: {
-      LOG(VERBOSE) << StringPrintf("%s: HAL_NFC_CLOSE_CPLT_EVT", func);
+      LOG(INFO)
+          << StringPrintf("%s: HAL_NFC_CLOSE_CPLT_EVT", func);
       break;
     }
   }

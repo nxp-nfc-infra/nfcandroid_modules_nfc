@@ -15,7 +15,25 @@
  *  limitations under the License.
  *
  ******************************************************************************/
-
+/******************************************************************************
+ *
+ *  The original Work has been changed by NXP
+ *
+ *  Copyright 2023-2025 NXP
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
 /******************************************************************************
  *
  *  This file contains functions that interface with the NFC NCI transport.
@@ -153,6 +171,10 @@ static std::string nfc_hal_event_name(uint8_t event) {
       return "HAL_NFC_ERROR_EVT";
     case HAL_HCI_NETWORK_RESET:
       return "HCI_NETWORK_RESET";
+#if (NXP_EXTNS == TRUE)
+    case HAL_NFC_FW_UPDATE_STATUS_EVT:
+      return "HAL_NFC_FW_UPDATE_STATUS_EVT";
+#endif
     default:
       return "???? UNKNOWN EVENT";
   }
