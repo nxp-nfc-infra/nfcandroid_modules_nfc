@@ -15,6 +15,24 @@
  *  limitations under the License.
  *
  ******************************************************************************/
+/******************************************************************************
+
+ *
+ *  Copyright 2022-2023, 2025 NXP
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
 
 /******************************************************************************
  *
@@ -36,6 +54,9 @@
 #define RW_T3T_FIRST_EVT 0x60
 #define RW_T4T_FIRST_EVT 0x80
 #define RW_I93_FIRST_EVT 0xA0
+#if (NXP_EXTNS == TRUE)
+#define RW_T3BT_FIRST_EVT 0xB0
+#endif
 #define RW_MFC_FIRST_EVT 0xC0
 #define RW_CI_FIRST_EVT 0xD0
 
@@ -125,6 +146,10 @@ enum {
   RW_I93_RAW_FRAME_EVT,        /* Response of raw frame sent         */
   RW_I93_INTF_ERROR_EVT,       /* RF Interface error event           */
   RW_I93_MAX_EVT,
+#if (NXP_EXTNS == TRUE)
+  RW_T3BT_RAW_READ_CPLT_EVT,
+  RW_T3BT_MAX_EVT,
+#endif
 
   /* Mifare Classic tag events for tRW_CBACK */
   RW_MFC_NDEF_DETECT_EVT =
@@ -1598,6 +1623,20 @@ extern tNFC_STATUS RW_T4tNfceeUpdateNlen(uint16_t len);
 **
 *******************************************************************************/
 extern tNFC_STATUS RW_SetT4tNfceeInfo(tRW_CBACK* p_cback, uint8_t conn_id);
+
+#if (NXP_EXTNS == TRUE)
+/*******************************************************************************
+**
+** Function         RW_T3BtGetPupiID
+**
+** Description      This function gets the PUPI ID of T3BT tag.
+**
+** Returns          tNFC_STATUS
+**
+*******************************************************************************/
+extern tNFC_STATUS RW_T3BtGetPupiID();
+
+#endif
 
 /*****************************************************************************
 **

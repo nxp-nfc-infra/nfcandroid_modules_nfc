@@ -15,7 +15,25 @@
  *  limitations under the License.
  *
  ******************************************************************************/
-
+/******************************************************************************
+ *
+ *  The original Work has been changed by NXP.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ *  Copyright 2025 NXP
+ *
+ ******************************************************************************/
 /******************************************************************************
  *
  *  This file contains the Near Field Communication (NFC) API function
@@ -396,6 +414,9 @@ extern bool NFC_IsRfRemovalDetectionSupported();
 /* NFCDEP/LLCP - NFC-A or NFC-F       */
 #define NFC_PROTOCOL_NFC_DEP NCI_PROTOCOL_NFC_DEP
 #define NFC_PROTOCOL_MIFARE NCI_PROTOCOL_MIFARE
+#if (NXP_EXTNS == TRUE)
+#define NFC_PROTOCOL_T3BT NCI_PROTOCOL_T3BT
+#endif
 #define NFC_PROTOCOL_ISO15693 NCI_PROTOCOL_15693
 #define NFC_PROTOCOL_B_PRIME NCI_PROTOCOL_B_PRIME
 #define NFC_PROTOCOL_KOVIO NCI_PROTOCOL_KOVIO
@@ -580,12 +601,19 @@ typedef tNFC_STATUS tNFC_START_DEVT;
 typedef tNCI_RF_PA_PARAMS tNFC_RF_PA_PARAMS;
 #define NFC_MAX_SENSB_RES_LEN NCI_MAX_SENSB_RES_LEN
 #define NFC_NFCID0_MAX_LEN 4
+#if (NXP_EXTNS == TRUE)
+#define NFC_PUPIID_MAX_LEN 8
+#endif
 typedef struct {
   uint8_t sensb_res_len; /* Length of SENSB_RES Response (Byte 2 - Byte 12 or
                             13) Available after Technology Detection */
   uint8_t sensb_res[NFC_MAX_SENSB_RES_LEN]; /* SENSB_RES Response (ATQ) */
   uint8_t nfcid0[NFC_NFCID0_MAX_LEN];
   uint8_t fwi;
+#if (NXP_EXTNS == TRUE)
+  uint8_t pupiid_len;
+  uint8_t pupiid[NFC_PUPIID_MAX_LEN];
+#endif
 } tNFC_RF_PB_PARAMS;
 
 #define NFC_MAX_SENSF_RES_LEN NCI_MAX_SENSF_RES_LEN

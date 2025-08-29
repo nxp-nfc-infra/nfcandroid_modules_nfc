@@ -15,7 +15,25 @@
  *  limitations under the License.
  *
  ******************************************************************************/
-
+/******************************************************************************
+ *
+ *  The original Work has been changed by NXP
+ *
+ *  Copyright 2022-2023,2025 NXP
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
 /******************************************************************************
  *
  *  This file contains the action functions the NFA_CE state machine.
@@ -355,6 +373,12 @@ void nfc_ce_t3t_set_listen_params(void) {
 
   /* For NCI draft 22+, the polarity of NFC_PMID_LF_T3T_FLAGS2 is flipped */
   t3t_flags2_mask = ~t3t_flags2_mask;
+#if (NXP_EXTNS == TRUE)
+  if (NFC_GetNCIVersion() == NCI_VERSION_1_0) {
+    t3t_flags2_mask =
+        ((t3t_flags2_mask & 0x00FF) << 8 | (t3t_flags2_mask & 0xFF00) >> 8);
+  }
+#endif
 
   UINT8_TO_STREAM(p_params, NFC_PMID_LF_T3T_FLAGS2);      /* type */
   UINT8_TO_STREAM(p_params, NCI_PARAM_LEN_LF_T3T_FLAGS2); /* length */
@@ -1029,7 +1053,9 @@ bool nfa_ce_deactivate_ntf(tNFA_CE_MSG* p_ce_msg) {
 
     return true;
   } else {
+#if (NXP_EXTNS != TRUE)
     deact_type = NFC_DEACTIVATE_TYPE_IDLE;
+#endif
   }
 
   /* Tag is in idle state */

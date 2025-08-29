@@ -15,6 +15,24 @@
  *  limitations under the License.
  *
  ******************************************************************************/
+/******************************************************************************
+
+ *
+ *  Copyright 2022-2023, 2025 NXP
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
 
 /******************************************************************************
  *
@@ -460,6 +478,7 @@ bool nfc_ncif_process_event(NFC_HDR* p_msg) {
       p_old = nfc_cb.last_hdr;
       NCI_MSG_PRS_HDR0(p_old, old_mt, pbf, old_gid);
       old_oid = ((*p_old) & NCI_OID_MASK);
+      (void)old_mt;  // To fix compilation warning
       /* make sure this is the RSP we are waiting for before updating the
        * command window */
       if ((old_gid != gid) || (old_oid != oid)) {
@@ -1017,7 +1036,11 @@ void nfc_ncif_proc_activate(uint8_t* p, uint8_t len) {
 
   if (evt_data.activate.protocol == NCI_PROTOCOL_18092_ACTIVE)
     evt_data.activate.protocol = NCI_PROTOCOL_NFC_DEP;
-
+#if (NXP_EXTNS == TRUE)
+  if ((evt_data.activate.protocol == NCI_PROTOCOL_UNKNOWN) &&
+      (p_intf->type == NCI_INTERFACE_FRAME))
+    evt_data.activate.protocol = NCI_PROTOCOL_T3BT;
+#endif
   evt_data.activate.rf_tech_param.mode = *p++;
   buff_size = *p++;
   num_buff = *p++;

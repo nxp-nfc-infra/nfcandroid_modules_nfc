@@ -17,6 +17,25 @@
  ******************************************************************************/
 
 /******************************************************************************
+
+ *
+ *  Copyright 2022-2023, 2025 NXP
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+/******************************************************************************
  *
  *  This file contains the implementation for Type 4 tag in Reader/Writer
  *  mode.
@@ -58,7 +77,9 @@ extern unsigned char appl_dta_mode_flag;
 
 /* performing NDEF format               */
 #define RW_T4T_STATE_NDEF_FORMAT 0x07
-
+#if (NXP_EXTNS == TRUE)
+#define RW_T3BT_STATE_GET_PROP_DATA 0x08
+#endif
 /* sub state */
 /* waiting for response of selecting AID    */
 #define RW_T4T_SUBSTATE_WAIT_SELECT_APP 0x00
@@ -88,6 +109,10 @@ extern unsigned char appl_dta_mode_flag;
 #define RW_T4T_SUBSTATE_WAIT_CREATE_NDEF 0x0E
 #define RW_T4T_SUBSTATE_WAIT_WRITE_CC 0x0F
 #define RW_T4T_SUBSTATE_WAIT_WRITE_NDEF 0x10
+#if (NXP_EXTNS == TRUE)
+#define RW_T3BT_SUBSTATE_WAIT_GET_ATTRIB 0x11
+#define RW_T3BT_SUBSTATE_WAIT_GET_PUPI 0x12
+#endif
 
 static std::string rw_t4t_get_state_name(uint8_t state);
 static std::string rw_t4t_get_sub_state_name(uint8_t sub_state);
@@ -110,6 +135,10 @@ static bool rw_t4t_create_ccfile(void);
 static bool rw_t4t_create_ndef(void);
 static bool rw_t4t_write_cc(void);
 static bool rw_t4t_write_ndef(void);
+#if (NXP_EXTNS == TRUE)
+static bool rw_t3bt_get_pupi(void);
+static void rw_t3Bt_sm_get_card_id(NFC_HDR* p_r_apdu);
+#endif
 static void rw_t4t_handle_error(tNFC_STATUS status, uint8_t sw1, uint8_t sw2);
 static void rw_t4t_sm_detect_ndef(NFC_HDR* p_r_apdu);
 static void rw_t4t_sm_read_ndef(NFC_HDR* p_r_apdu);
@@ -841,6 +870,35 @@ static bool rw_t4t_write_ndef(void) {
   return true;
 }
 
+#if (NXP_EXTNS == TRUE)
+static bool rw_t3bt_get_pupi(void) {
+  NFC_HDR* p_c_apdu;
+  uint8_t* p;
+
+  p_c_apdu = (NFC_HDR*)GKI_getpoolbuf(NFC_RW_POOL_ID);
+
+  if (!p_c_apdu) {
+    LOG(ERROR) << StringPrintf("rw_t3bt_get_pupi (): Cannot allocate buffer");
+    return false;
+  }
+
+  p_c_apdu->offset = NCI_MSG_OFFSET_SIZE + NCI_DATA_HDR_SIZE;
+  p = (uint8_t*)(p_c_apdu + 1) + p_c_apdu->offset;
+
+  UINT8_TO_BE_STREAM(p, 0x00);
+  UINT8_TO_BE_STREAM(p, 0x36);
+  UINT16_TO_BE_STREAM(p, 0x0000);
+  UINT8_TO_BE_STREAM(p, 0x08); /* Lc: length of wrapped data  */
+
+  p_c_apdu->len = 0x05;
+
+  if (!rw_t4t_send_to_lower(p_c_apdu)) {
+    return false;
+  }
+  return true;
+}
+#endif
+
 /*******************************************************************************
 **
 ** Function         rw_t4t_select_file
@@ -1422,7 +1480,12 @@ static void rw_t4t_handle_error(tNFC_STATUS status, uint8_t sw1, uint8_t sw2) {
         event = RW_T4T_NDEF_FORMAT_CPLT_EVT;
         rw_data.status = NFC_STATUS_FAILED;
         break;
-
+#if (NXP_EXTNS == TRUE)
+      case RW_T3BT_STATE_GET_PROP_DATA:
+        event = RW_T3BT_RAW_READ_CPLT_EVT;
+        rw_data.status = NFC_STATUS_FAILED;
+        break;
+#endif
       default:
         event = RW_T4T_MAX_EVT;
         break;
@@ -1618,6 +1681,61 @@ static void rw_t4t_sm_ndef_format(NFC_HDR* p_r_apdu) {
       break;
   }
 }
+
+#if (NXP_EXTNS == TRUE)
+static void rw_t3Bt_sm_get_card_id(NFC_HDR* p_r_apdu) {
+  tRW_T4T_CB* p_t4t = &rw_cb.tcb.t4t;
+  uint8_t* p;
+  uint16_t status_words;
+  tRW_DATA rw_data;
+
+  LOG(INFO) << StringPrintf("rw_t3Bt_sm_get_id (): sub_state:%s (%d)",
+                            rw_t4t_get_sub_state_name(p_t4t->sub_state).c_str(),
+                            p_t4t->sub_state);
+
+  /* get status words */
+  p = (uint8_t*)(p_r_apdu + 1) + p_r_apdu->offset;
+
+  switch (p_t4t->sub_state) {
+    case RW_T3BT_SUBSTATE_WAIT_GET_ATTRIB:
+      if ((p_r_apdu->len == 0x00) && ((*p != 0x00) && (*p++ != 0x00))) {
+        rw_t4t_handle_error(NFC_STATUS_CMD_NOT_CMPLTD, *(p - 2), *(p - 1));
+      } else {
+        if (!rw_t3bt_get_pupi()) {
+          rw_t4t_handle_error(NFC_STATUS_FAILED, 0, 0);
+        } else {
+          p_t4t->sub_state = RW_T3BT_SUBSTATE_WAIT_GET_PUPI;
+        }
+      }
+      break;
+
+    case RW_T3BT_SUBSTATE_WAIT_GET_PUPI:
+      p += (p_r_apdu->len - 3);
+      BE_STREAM_TO_UINT16(status_words, p);
+      if (status_words != 0x9000) {
+        rw_t4t_handle_error(NFC_STATUS_CMD_NOT_CMPLTD, *(p - 2), *(p - 1));
+      } else {
+        uint8_t rsp_len = p_r_apdu->len - 3;
+        p = (uint8_t*)(p_r_apdu + 1) +
+            p_r_apdu->offset;  //"p" points to start of response
+        p_t4t->state = RW_T4T_STATE_IDLE;
+        nfa_rw_update_pupi_id(p, rsp_len);
+        if (rw_cb.p_cback) {
+          (*(rw_cb.p_cback))(RW_T3BT_RAW_READ_CPLT_EVT, &rw_data);
+        } else {
+          LOG(ERROR) << StringPrintf("rw_t3Bt_sm_get_id (): NULL callback");
+        }
+      }
+      break;
+
+    default:
+      LOG(ERROR) << StringPrintf("rw_t3Bt_sm_get_id (): unknown sub_state=%d",
+                                 p_t4t->sub_state);
+      rw_t4t_handle_error(NFC_STATUS_FAILED, 0, 0);
+      break;
+  }
+}
+#endif
 
 /*******************************************************************************
 **
@@ -2440,6 +2558,12 @@ static void rw_t4t_data_cback(__attribute__((unused)) uint8_t conn_id,
       rw_t4t_sm_ndef_format(p_r_apdu);
       GKI_freebuf(p_r_apdu);
       break;
+#if (NXP_EXTNS == TRUE)
+    case RW_T3BT_STATE_GET_PROP_DATA:
+      rw_t3Bt_sm_get_card_id(p_r_apdu);
+      GKI_freebuf(p_r_apdu);
+      break;
+#endif
     default:
       LOG(ERROR) << StringPrintf("%s: invalid state=%d", __func__,
                                  p_t4t->state);
@@ -3023,6 +3147,39 @@ tNFC_STATUS RW_T4tSetNDefReadOnly(void) {
   }
   return (retval);
 }
+
+#if (NXP_EXTNS == TRUE)
+tNFC_STATUS RW_T3BtGetPupiID(void) {
+  NFC_HDR* p_c_apdu;
+  uint8_t* p;
+
+  p_c_apdu = (NFC_HDR*)GKI_getpoolbuf(NFC_RW_POOL_ID);
+
+  if (!p_c_apdu) {
+    LOG(ERROR) << StringPrintf("RW_T3BtGetPupiID (): Cannot allocate buffer");
+    return false;
+  }
+
+  p_c_apdu->offset = NCI_MSG_OFFSET_SIZE + NCI_DATA_HDR_SIZE;
+  p = (uint8_t*)(p_c_apdu + 1) + p_c_apdu->offset;
+
+  UINT8_TO_BE_STREAM(p, 0x1D);
+  UINT16_TO_BE_STREAM(p, 0x0000);
+  UINT16_TO_BE_STREAM(p, 0x0000);
+  UINT16_TO_BE_STREAM(p, 0x0008);
+  UINT16_TO_BE_STREAM(p, 0x0100);
+
+  p_c_apdu->len = 0x09;
+
+  if (!rw_t4t_send_to_lower(p_c_apdu)) {
+    return false;
+  }
+
+  rw_cb.tcb.t4t.state = RW_T3BT_STATE_GET_PROP_DATA;
+  rw_cb.tcb.t4t.sub_state = RW_T3BT_SUBSTATE_WAIT_GET_ATTRIB;
+  return true;
+}
+#endif
 
 /*******************************************************************************
 **

@@ -15,6 +15,24 @@
  *  limitations under the License.
  *
  ******************************************************************************/
+/******************************************************************************
+
+ *
+ *  Copyright 2022-2025 NXP
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
 
 /******************************************************************************
  *
@@ -135,6 +153,8 @@
 /* CORE_RESET_NTF reset trigger type*/
 #define NCI2_X_RESET_TRIGGER_TYPE_POWERED_ON 0x01
 #define NCI2_X_RESET_TRIGGER_TYPE_CORE_RESET_CMD_RECEIVED 0x02
+#define NCI2_0_RESET_TRIGGER_TYPE_MODE_SWITCH_TO_NFC_FORUM 0xA8
+#define NCI2_0_RESET_TRIGGER_TYPE_MODE_SWITCH_TO_EMVCO 0xA9
 
 /* Status Codes */
 #define NCI_STATUS_OK 0x00
@@ -424,6 +444,15 @@ typedef uint8_t tNCI_INTF_EXT_TYPE;
 #define NCI_PROTOCOL_T5T 0x06
 #define NCI_PROTOCOL_ISO_DEP 0x04
 #define NCI_PROTOCOL_NFC_DEP 0x05
+
+/**********************************************
+ * Proprietary Protocols
+ **********************************************/
+#if (NXP_EXTNS == TRUE)
+#ifndef NCI_PROTOCOL_T3BT
+#define NCI_PROTOCOL_T3BT 0x8b
+#endif
+#endif
 
 /* Discovery Types/Detected Technology and Mode */
 #define NCI_DISCOVERY_TYPE_POLL_A 0x00

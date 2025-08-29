@@ -60,9 +60,13 @@
 
 /* NFC mandates support for at least one logical connection;
  * Update max_conn to the NFCC capability on InitRsp */
+#if (NXP_EXTNS == TRUE)
+#define NFC_SET_MAX_CONN_DEFAULT() \
+  { nfc_cb.max_conn = 2; }
+#else
 #define NFC_SET_MAX_CONN_DEFAULT() \
   { nfc_cb.max_conn = 1; }
-
+#endif
 #else /* NFC_RW_ONLY */
 #define ce_init()
 
@@ -461,7 +465,12 @@ void nfc_main_handle_hal_evt(tNFC_HAL_EVT_MSG* p_msg) {
           } else {
             nfc_set_state(NFC_STATE_NONE);
             (*nfc_cb.p_resp_cback)(NFC_DISABLE_REVT, nullptr);
+#if (NXP_EXTNS == TRUE)
+            /* if p_resp_cback is nullfied, NFC HAL binder died will not reach
+             * Nfc Service artf1039993 to revert this change later */
+#else
             nfc_cb.p_resp_cback = nullptr;
+#endif
           }
         } else {
           /* found error during initialization */
@@ -782,7 +791,12 @@ void NFC_Disable(void) {
     nfc_set_state(NFC_STATE_NONE);
     if (nfc_cb.p_resp_cback) {
       (*nfc_cb.p_resp_cback)(NFC_DISABLE_REVT, nullptr);
+#if (NXP_EXTNS == TRUE)
+      /* if p_resp_cback is nullfied, NFC HAL binder died will not reach Nfc
+       * Service artf1039993 to revert this change later */
+#else
       nfc_cb.p_resp_cback = nullptr;
+#endif
     }
     return;
   }

@@ -15,7 +15,24 @@
  *  limitations under the License.
  *
  ******************************************************************************/
+/******************************************************************************
 
+ *
+ *  Copyright 2025 NXP
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
 /******************************************************************************
  *
  *  This is the private interface file for NFA_RW
@@ -119,6 +136,9 @@ enum {
   NFA_RW_OP_I93_GET_SYS_INFO,
   NFA_RW_OP_I93_GET_MULTI_BLOCK_STATUS,
   NFA_RW_OP_I93_SET_ADDR_MODE,
+#if (NXP_EXTNS == TRUE)
+  NFA_RW_OP_T3BT_PUPI,
+#endif
   NFA_RW_OP_CI_ATTRIB,
   NFA_RW_OP_CI_UID,
   NFA_RW_OP_MAX
@@ -353,5 +373,9 @@ extern bool nfa_rw_handle_event(NFC_HDR* p_msg);
 
 extern void nfa_rw_free_ndef_rx_buf(void);
 extern void nfa_rw_sys_disable(void);
+
+#if (NXP_EXTNS == TRUE)
+extern void nfa_rw_update_pupi_id(uint8_t* p, uint8_t len);
+#endif
 
 #endif /* NFA_DM_INT_H */

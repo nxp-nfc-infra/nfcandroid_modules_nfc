@@ -30,6 +30,7 @@ cc_test {
     cflags: [
         "-Wall",
         "-Werror",
+        "-DNXP_EXTNS=TRUE",
     ],
     target: {
         host_linux: {

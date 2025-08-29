@@ -15,7 +15,25 @@
  *  limitations under the License.
  *
  ******************************************************************************/
-
+/******************************************************************************
+ *
+ *  The original Work has been changed by NXP.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ *  Copyright 2023, 2025 NXP
+ *
+ ******************************************************************************/
 /******************************************************************************
  *
  *  This file contains the action functions for NFA-EE
@@ -331,12 +349,24 @@ static void nfa_ee_add_tech_route_to_ecb(tNFA_EE_ECB* p_cb, uint8_t* pp,
       power_cfg |= NCI_ROUTE_PWR_STATE_BATT_OFF;
     if ((power_cfg & NCI_ROUTE_PWR_STATE_ON) &&
         (NFC_GetNCIVersion() >= NCI_VERSION_2_0)) {
+#if (NXP_EXTNS == TRUE)
+      if ((p_cb->tech_screen_lock & nfa_ee_tech_mask_list[xx]) &&
+          (nfcFL.chipType == pn7160))
+        power_cfg |= NCI_ROUTE_PWR_STATE_SCREEN_ON_LOCK();
+      if ((p_cb->tech_screen_off & nfa_ee_tech_mask_list[xx]) &&
+          (nfcFL.chipType == pn7160))
+        power_cfg |= NCI_ROUTE_PWR_STATE_SCREEN_OFF_UNLOCK();
+      if ((p_cb->tech_screen_off_lock & nfa_ee_tech_mask_list[xx]) &&
+          (nfcFL.chipType == pn7160))
+        power_cfg |= NCI_ROUTE_PWR_STATE_SCREEN_OFF_LOCK();
+#else
       if (p_cb->tech_screen_lock & nfa_ee_tech_mask_list[xx])
         power_cfg |= NCI_ROUTE_PWR_STATE_SCREEN_ON_LOCK();
       if (p_cb->tech_screen_off & nfa_ee_tech_mask_list[xx])
         power_cfg |= NCI_ROUTE_PWR_STATE_SCREEN_OFF_UNLOCK();
       if (p_cb->tech_screen_off_lock & nfa_ee_tech_mask_list[xx])
         power_cfg |= NCI_ROUTE_PWR_STATE_SCREEN_OFF_LOCK();
+#endif
     }
     if (power_cfg) {
       if (mute_tech_route_option) {
@@ -406,8 +436,14 @@ static void nfa_ee_add_proto_route_to_ecb(tNFA_EE_ECB* p_cb, uint8_t* pp,
            enable HCE screen lock */
         if ((power_cfg & NCI_ROUTE_PWR_STATE_ON) &&
             (NFC_GetNCIVersion() >= NCI_VERSION_2_0)) {
+#if (NXP_EXTNS == TRUE)
+          if ((p_cb->proto_screen_lock & nfa_ee_proto_mask_list[xx]) &&
+              (nfcFL.chipType == pn7160))
+            power_cfg |= NCI_ROUTE_PWR_STATE_SCREEN_ON_LOCK();
+#else
           if (p_cb->proto_screen_lock & nfa_ee_proto_mask_list[xx])
             power_cfg |= NCI_ROUTE_PWR_STATE_SCREEN_ON_LOCK();
+#endif
           if (p_cb->proto_screen_off & nfa_ee_proto_mask_list[xx])
             power_cfg |= NCI_ROUTE_PWR_STATE_SCREEN_OFF_UNLOCK();
           if (p_cb->proto_screen_off_lock & nfa_ee_proto_mask_list[xx])

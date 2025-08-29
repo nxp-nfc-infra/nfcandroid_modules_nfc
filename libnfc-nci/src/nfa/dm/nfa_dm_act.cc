@@ -15,6 +15,24 @@
  *  limitations under the License.
  *
  ******************************************************************************/
+/******************************************************************************
+
+ *
+ *  Copyright 2022-2023, 2025 NXP
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
 
 /******************************************************************************
  *
@@ -842,7 +860,13 @@ bool nfa_dm_act_deactivate(tNFA_DM_MSG* p_data) {
         deact_type = NFA_DEACTIVATE_TYPE_SLEEP;
       }
     }
-    if (nfa_dm_cb.disc_cb.disc_state == NFA_DM_RFST_W4_ALL_DISCOVERIES) {
+#if (NXP_EXTNS == TRUE)
+    if ((nfa_dm_cb.disc_cb.disc_state == NFA_DM_RFST_W4_ALL_DISCOVERIES) ||
+        (nfa_dm_cb.disc_cb.activated_protocol == NFA_PROTOCOL_T3BT))
+#else
+    if (nfa_dm_cb.disc_cb.disc_state == NFA_DM_RFST_W4_ALL_DISCOVERIES)
+#endif
+    {
       /* Only deactivate to IDLE is allowed in this state. */
       deact_type = NFA_DEACTIVATE_TYPE_IDLE;
     }
@@ -976,6 +1000,9 @@ tNFA_STATUS nfa_dm_start_polling(void) {
     if (poll_tech_mask & NFA_TECHNOLOGY_MASK_B) {
       poll_disc_mask |= NFA_DM_DISC_MASK_PB_ISO_DEP;
       poll_disc_mask |= NFA_DM_DISC_MASK_PB_CI;
+#if (NXP_EXTNS == TRUE)
+      poll_disc_mask |= NFA_DM_DISC_MASK_PB_T3BT;
+#endif
     }
     if (poll_tech_mask & NFA_TECHNOLOGY_MASK_F) {
       poll_disc_mask |= NFA_DM_DISC_MASK_PF_T3T;
@@ -1475,6 +1502,13 @@ static void nfa_dm_act_data_cback(__attribute__((unused)) uint8_t conn_id,
           __func__);
     }
   }
+#if (NXP_EXTNS == TRUE)
+  else if (event == NFC_ERROR_CEVT) {
+    LOG(ERROR) << StringPrintf("received NFC_ERROR_CEVT with status = 0x%X",
+                               p_data->status);
+    nfa_dm_rf_deactivate(NFA_DEACTIVATE_TYPE_DISCOVERY);
+  }
+#endif
 }
 
 /*******************************************************************************
@@ -1632,7 +1666,11 @@ static void nfa_dm_poll_disc_cback(tNFA_DM_RF_DISC_EVT event,
             (nfa_dm_cb.disc_cb.activated_protocol == NFC_PROTOCOL_ISO_DEP) ||
             (nfa_dm_cb.disc_cb.activated_protocol == NFC_PROTOCOL_T5T) ||
             (nfa_dm_cb.disc_cb.activated_protocol == NFC_PROTOCOL_KOVIO) ||
-            (nfa_dm_cb.disc_cb.activated_protocol == NFC_PROTOCOL_MIFARE)) {
+            (nfa_dm_cb.disc_cb.activated_protocol == NFC_PROTOCOL_MIFARE)
+#if (NXP_EXTNS == TRUE)
+            || (nfa_dm_cb.disc_cb.activated_protocol == NFC_PROTOCOL_T3BT)
+#endif
+        ) {
           /* Notify NFA tag sub-system */
           nfa_rw_proc_disc_evt(NFA_DM_RF_DISC_ACTIVATED_EVT, p_data, true);
         }
@@ -1688,7 +1726,11 @@ static void nfa_dm_poll_disc_cback(tNFA_DM_RF_DISC_EVT event,
             (p_data->deactivate.type == NFC_DEACTIVATE_TYPE_SLEEP_AF)) {
           evt_data.deactivated.type = NFA_DEACTIVATE_TYPE_SLEEP;
         } else {
+#if (NXP_EXTNS == TRUE)
           evt_data.deactivated.type = p_data->deactivate.type;
+#else
+          evt_data.deactivated.type = NFA_DEACTIVATE_TYPE_IDLE;
+#endif
         }
         /* notify deactivation to application */
         nfa_dm_conn_cback_event_notify(NFA_DEACTIVATED_EVT, &evt_data);
@@ -1773,8 +1815,14 @@ void nfa_dm_notify_activation_status(tNFA_STATUS status,
         p_nfcid = p_params->t1t.uid;
         evt_data.activated.activate_ntf.rf_tech_param.param.pa.nfcid1_len =
             nfcid_len;
-        memcpy(evt_data.activated.activate_ntf.rf_tech_param.param.pa.nfcid1,
-               p_nfcid, nfcid_len);
+#if (NXP_EXTNS == TRUE)
+        if (nfcid_len > 0 && p_nfcid != nullptr) {
+#endif
+          memcpy(evt_data.activated.activate_ntf.rf_tech_param.param.pa.nfcid1,
+                 p_nfcid, nfcid_len);
+#if (NXP_EXTNS == TRUE)
+        }
+#endif
       } else {
         nfcid_len = p_tech_params->param.pa.nfcid1_len;
         p_nfcid = p_tech_params->param.pa.nfcid1;
@@ -1782,6 +1830,21 @@ void nfa_dm_notify_activation_status(tNFA_STATUS status,
     } else if (p_tech_params->mode == NFC_DISCOVERY_TYPE_POLL_B) {
       nfcid_len = NFC_NFCID0_MAX_LEN;
       p_nfcid = p_tech_params->param.pb.nfcid0;
+#if (NXP_EXTNS == TRUE)
+      if (nfa_dm_cb.disc_cb.activated_protocol == NFC_PROTOCOL_T3BT) {
+        if (p_tech_params->param.pb.pupiid_len != 0) {
+          tNFC_ACTIVATE_DEVT* activate_ntf =
+              (tNFC_ACTIVATE_DEVT*)nfa_dm_cb.p_activate_ntf;
+          p_nfcid = activate_ntf->rf_tech_param.param.pb.pupiid;
+          nfcid_len = activate_ntf->rf_tech_param.param.pb.pupiid_len;
+          LOG(INFO) << StringPrintf(
+              "nfa_dm_notify_activation_status (): update pupi_len=%x",
+              nfcid_len);
+          memcpy(evt_data.activated.activate_ntf.rf_tech_param.param.pb.pupiid,
+                 p_nfcid, nfcid_len);
+        }
+      }
+#endif
     } else if (p_tech_params->mode == NFC_DISCOVERY_TYPE_POLL_F) {
       nfcid_len = NFC_NFCID2_LEN;
       p_nfcid = p_tech_params->param.pf.nfcid2;

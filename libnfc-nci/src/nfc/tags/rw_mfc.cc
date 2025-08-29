@@ -13,7 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
+/******************************************************************************
 
+*
+*  Copyright 2025 NXP
+*
+*  Licensed under the Apache License, Version 2.0 (the "License");
+*  you may not use this file except in compliance with the License.
+*  You may obtain a copy of the License at
+*
+*  http://www.apache.org/licenses/LICENSE-2.0
+*
+*  Unless required by applicable law or agreed to in writing, software
+*  distributed under the License is distributed on an "AS IS" BASIS,
+*  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+*  See the License for the specific language governing permissions and
+*  limitations under the License.
+*
+******************************************************************************/
 /******************************************************************************
  *
  *  This file contains the implementation for Mifare Classic tag in
@@ -1269,6 +1286,10 @@ static void rw_mfc_handle_read_op(uint8_t* data) {
       saved_length = p_mfc->ndef_length;
 
       if (p_mfc->work_offset == 0) {
+#if (NXP_EXTNS != TRUE)
+        /* The Ndef Message offset may be present in the read 16 bytes */
+        offset = p_mfc->ndef_start_pos;
+#endif
         if (!rw_nfc_decodeTlv(data)) {
           failed = true;
           LOG(VERBOSE) << __func__ << " FAILED finding TLV";

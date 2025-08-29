@@ -15,6 +15,25 @@
  *  limitations under the License.
  *
  ******************************************************************************/
+/******************************************************************************
+ *
+ *  The original Work has been changed by NXP
+ *
+ *  Copyright 2022-2023,2025 NXP
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
 
 /******************************************************************************
  *
@@ -409,7 +428,11 @@ tNFA_STATUS NFA_CeSetIsoDepListenTech(tNFA_TECHNOLOGY_MASK tech_mask) {
       (NFA_TECHNOLOGY_MASK_A | NFA_TECHNOLOGY_MASK_B);
 
   LOG(VERBOSE) << StringPrintf("%s: tech_mask=0x%x", __func__, tech_mask);
+#if (NXP_EXTNS == TRUE)
+  if (((tech_mask & ~use_mask) != 0)) {
+#else
   if (((tech_mask & use_mask) == 0) || ((tech_mask & ~use_mask) != 0)) {
+#endif
     LOG(ERROR) << StringPrintf("%s: Invalid technology mask", __func__);
     return (NFA_STATUS_INVALID_PARAM);
   }

@@ -15,6 +15,24 @@
  *  limitations under the License.
  *
  ******************************************************************************/
+/******************************************************************************
+
+ *
+ *  Copyright 2022-2023, 2025 NXP
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
 
 /******************************************************************************
  *
@@ -356,6 +374,7 @@ typedef uint8_t tNFA_DM_RF_DISC_EVT;
 #define NFA_DM_DISC_MASK_P_LEGACY 0x00002000
 #define NFA_DM_DISC_MASK_PA_MIFARE 0x00004000
 #define NFA_DM_DISC_MASK_PB_CI 0x00008000
+#define NFA_DM_DISC_MASK_PB_T3BT 0x00008000
 #define NFA_DM_DISC_MASK_POLL 0x0000FFFF
 
 #define NFA_DM_DISC_MASK_LA_T1T 0x00010000

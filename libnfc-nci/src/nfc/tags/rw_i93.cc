@@ -15,7 +15,25 @@
  *  limitations under the License.
  *
  ******************************************************************************/
-
+/******************************************************************************
+ *
+ *  The original Work has been changed by NXP
+ *
+ *  Copyright 2023, 2025 NXP
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
 /******************************************************************************
  *
  *  This file contains the implementation for ISO 15693 in Reader/Writer
@@ -3104,6 +3122,12 @@ void rw_i93_handle_error(tNFC_STATUS status) {
 
   if (rw_cb.p_cback) {
     rw_data.status = status;
+#if (NXP_EXTNS == TRUE)
+    if ((NFC_STATUS_TIMEOUT == rw_data.status) &&
+        (p_i93->sent_cmd != I93_CMD_STAY_QUIET)) {
+      p_i93->state = RW_I93_STATE_IDLE;
+    }
+#endif
     switch (p_i93->state) {
       case RW_I93_STATE_IDLE: /* in case of RawFrame */
         event = RW_I93_INTF_ERROR_EVT;
