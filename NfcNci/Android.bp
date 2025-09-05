@@ -70,10 +70,14 @@ android_app {
         ":nfc-sources",
         "shim_src/non_apex/**/*.java",
     ],
+    uses_libs: [
+        "com.nxp.nfc",
+    ],
     libs: [
         // order matters: classes in framework-nfc are resolved before framework, meaning
         // @hide APIs in framework-nfc are resolved before @SystemApi stubs in framework
         "framework-nfc.impl",
+        "com.nxp.nfc",
         "framework",
 
         // if sdk_version="" this gets automatically included, but here we need to add manually.
@@ -106,6 +110,9 @@ android_app {
         ":nfc-sources",
         "shim_src/apex/**/*.java",
     ],
+    uses_libs: [
+        "com.nxp.nfc",
+    ],
     libs: [
         "android.nfc.flags-aconfig-java",
         "android.permission.flags-aconfig-java",
@@ -114,6 +121,7 @@ android_app {
         "framework-bluetooth.stubs.module_lib",
         "framework-configinfrastructure.stubs.module_lib",
         "framework-nfc.impl",
+        "com.nxp.nfc",
         "framework-permission-s.stubs.module_lib",
         "framework-permission.stubs.module_lib",
         "framework-statsd.stubs.module_lib",

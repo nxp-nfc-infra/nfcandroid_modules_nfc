@@ -128,6 +128,8 @@ const char* gNfcVendorNciResponseClassName =
     "com/android/nfc/NfcVendorNciResponse";
 const char* gNativeT4tNfceeClassName =
     "com/android/nfc/dhimpl/NativeT4tNfceeManager";
+const char* gNativeNfcTdaProfileClassName =
+    "com/android/nfc/dhimpl/NativeNfcTdaManager";
 void doStartupConfig();
 void startStopPolling(bool isStartPolling);
 void startRfDiscovery(bool isStart);
@@ -2341,6 +2343,7 @@ static void nfcManager_doSetScreenState(JNIEnv* e, jobject o,
   }
 
   if (!sIsAlwaysPolling) {
+#if (NXP_EXTNS != TRUE)
     SyncEventGuard guard(gNfaSetConfigEvent);
     status = NFA_SetConfig(NCI_PARAM_ID_CON_DISCOVERY_PARAM,
                            NCI_PARAM_LEN_CON_DISCOVERY_PARAM, &discovry_param);
@@ -2351,6 +2354,7 @@ static void nfcManager_doSetScreenState(JNIEnv* e, jobject o,
                                  __FUNCTION__);
       return;
     }
+#endif
   }
   // skip remaining SetScreenState tasks when trying to silent recover NFCC
   if (recovery_option && sIsRecovering) {
@@ -2374,7 +2378,15 @@ static void nfcManager_doSetScreenState(JNIEnv* e, jobject o,
     prevScreenState = state;
     return;
   }
-
+/*To be uncommented as part of Chiptype update*/
+  /* if ((state == NFA_SCREEN_STATE_OFF_LOCKED ||
+        state == NFA_SCREEN_STATE_OFF_UNLOCKED) &&
+       (prevScreenState == NFA_SCREEN_STATE_ON_UNLOCKED ||
+        prevScreenState == NFA_SCREEN_STATE_ON_LOCKED) &&
+       (!sSeRfActive)) {
+     // screen turns off, disconnect tag if connected
+     nativeNfcTag_doDisconnect(NULL, NULL);
+   }*/
   if ((state == NFA_SCREEN_STATE_OFF_LOCKED ||
        state == NFA_SCREEN_STATE_OFF_UNLOCKED) &&
       (prevScreenState == NFA_SCREEN_STATE_ON_UNLOCKED ||
@@ -2382,6 +2394,21 @@ static void nfcManager_doSetScreenState(JNIEnv* e, jobject o,
       (!sSeRfActive)) {
     // screen turns off, disconnect tag if connected
     nativeNfcTag_doDisconnect(NULL, NULL);
+    startRfDiscovery(false);
+    sDiscoveryEnabled = false;
+    stopPolling_rfDiscoveryDisabled();
+    startRfDiscovery(true);
+    sDiscoveryEnabled = true;
+  }
+
+  if ((state == NFA_SCREEN_STATE_ON_UNLOCKED) &&
+      (prevScreenState == NFA_SCREEN_STATE_OFF_UNLOCKED ||
+       prevScreenState == NFA_SCREEN_STATE_ON_LOCKED)) {
+    startRfDiscovery(false);
+    sDiscoveryEnabled = false;
+    startPolling_rfDiscoveryDisabled(0);
+    startRfDiscovery(true);
+    sDiscoveryEnabled = true;
   }
 
   prevScreenState = state;

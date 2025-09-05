@@ -33,6 +33,7 @@ import com.android.nfc.DeviceHost;
 import com.android.nfc.ExitFrame;
 import com.android.nfc.NfcDiscoveryParameters;
 import com.android.nfc.NfcProprietaryCaps;
+import com.nxp.nfc.NfcTDAInfo;
 import com.android.nfc.NfcService;
 import com.android.nfc.NfcStatsLog;
 import com.android.nfc.NfcVendorNciResponse;
@@ -61,6 +62,7 @@ public class NativeNfcManager implements DeviceHost {
     private int mIsoDepMaxTransceiveLength;
     private final DeviceHostListener mListener;
     private final NativeT4tNfceeManager mT4tNfceeMgr;
+    private final NativeNfcTdaManager mTdaMgr;
     private final Context mContext;
 
     private final Object mLock = new Object();
@@ -97,6 +99,7 @@ public class NativeNfcManager implements DeviceHost {
         initializeNativeStructure();
         mContext = context;
         mT4tNfceeMgr = new NativeT4tNfceeManager();
+        mTdaMgr = new NativeNfcTdaManager();
         sInstance = this;
     }
 
@@ -489,6 +492,26 @@ public class NativeNfcManager implements DeviceHost {
     public NfcVendorNciResponse sendRawVendorCmd(int mt, int gid, int oid, byte[] payload) {
         NfcVendorNciResponse res= nativeSendRawVendorCmd(mt, gid, oid, payload);
         return res;
+    }
+
+    @Override
+    public NfcTDAInfo[] discoverTDA() {
+      return mTdaMgr.discoverTDA();
+    }
+
+    @Override
+    public byte openTDA(byte tdaID, boolean standBy) {
+      return mTdaMgr.openTDA(tdaID, standBy);
+    }
+
+    @Override
+    public byte[] transceive(byte[] in_data) {
+      return mTdaMgr.transceive(in_data);
+    }
+
+    @Override
+    public byte closeTDA(byte tdaID, boolean standBy) {
+      return mTdaMgr.closeTDA(tdaID, standBy);
     }
 
     /** Notifies Ndef Message (TODO: rename into notifyTargetDiscovered) */

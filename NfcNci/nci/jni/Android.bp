@@ -36,6 +36,7 @@ cc_defaults {
         "packages/modules/Nfc/libnfc-nci/src/nfa/include",
         "packages/modules/Nfc/libnfc-nci/src/nfc/include",
         "packages/modules/Nfc/libnfc-nci/src/include",
+        "packages/modules/Nfc/libnfc-nci/src/include/tda",
         "packages/modules/Nfc/libnfc-nci/src/gki/ulinux",
         "packages/modules/Nfc/libnfc-nci/src/gki/common",
         "packages/modules/Nfc/libnfc-nci/utils/include",
@@ -59,6 +60,7 @@ cc_defaults {
         "android.hardware.nfc@1.0",
         "android.hardware.nfc@1.1",
         "android.hardware.nfc@1.2",
+        "vendor.nxp.nxpnfc_aidl-V2-ndk",
         // Add for AIDL
         "android.hardware.nfc-V2-ndk",
         "libnfcutils",
@@ -133,6 +135,7 @@ cc_test {
         "android.hardware.nfc@1.0",
         "android.hardware.nfc@1.1",
         "android.hardware.nfc@1.2",
+        "vendor.nxp.nxpnfc@2.0",
         // Add for AIDL
         "android.hardware.nfc-V2-ndk",
         "libnfcutils",
