@@ -242,6 +242,18 @@ tNFA_STATUS NFA_EeRegister(tNFA_EE_CBACK* p_cback) {
     p_msg =
         (tNFA_EE_API_REGISTER*)gki_utils->getbuf(sizeof(tNFA_EE_API_REGISTER));
     if (p_msg != nullptr) {
+#if (NXP_EXTNS == TRUE)
+      /* uncommented after chiptype change*/
+      // if (nfcFL.chipType != pn7160) {
+      /* TODO: HCE initialization is intact with NFCEE initialization.
+       * As we are not doing NFCEE init therefore hardcoding NFCEE state
+       * INIT_DONE and notifying the upper layer.This may be removed during CT
+       * implementation.
+       */
+      nfa_ee_cb.em_state = NFA_EE_EM_STATE_INIT_DONE;
+      nfa_sys_cback_notify_enable_complete(NFA_ID_EE);
+      //}
+#endif
       p_msg->hdr.event = NFA_EE_API_REGISTER_EVT;
       p_msg->p_cback = p_cback;
 
@@ -687,7 +699,7 @@ tNFA_STATUS NFA_EeAddAidRouting(tNFA_HANDLE ee_handle, uint8_t aid_len,
   } else {
     p_msg = (tNFA_EE_API_ADD_AID*)gki_utils->getbuf(size);
     if (p_msg != nullptr) {
-      if (p_aid != nullptr)
+      if (p_aid != nullptr) {
         LOG(VERBOSE) << StringPrintf("%s: aid:<%02x%02x>", __func__, p_aid[0],
                                      p_aid[1]);
       p_msg->hdr.event = NFA_EE_API_ADD_AID_EVT;
@@ -702,6 +714,9 @@ tNFA_STATUS NFA_EeAddAidRouting(tNFA_HANDLE ee_handle, uint8_t aid_len,
       nfa_sys_sendmsg(p_msg);
 
       status = NFA_STATUS_OK;
+      } else {
+        LOG(ERROR) << StringPrintf("%s: aid is null ", __func__);
+      }
     }
   }
 
@@ -750,14 +765,18 @@ tNFA_STATUS NFA_EeRemoveAidRouting(uint8_t aid_len, uint8_t* p_aid) {
   } else {
     p_msg = (tNFA_EE_API_REMOVE_AID*)gki_utils->getbuf(size);
     if (p_msg != nullptr) {
-      p_msg->hdr.event = NFA_EE_API_REMOVE_AID_EVT;
-      p_msg->aid_len = aid_len;
-      p_msg->p_aid = (uint8_t*)(p_msg + 1);
-      memcpy(p_msg->p_aid, p_aid, aid_len);
+      if (p_aid != nullptr) {
+        p_msg->hdr.event = NFA_EE_API_REMOVE_AID_EVT;
+        p_msg->aid_len = aid_len;
+        p_msg->p_aid = (uint8_t*)(p_msg + 1);
+        memcpy(p_msg->p_aid, p_aid, aid_len);
 
-      nfa_sys_sendmsg(p_msg);
+        nfa_sys_sendmsg(p_msg);
 
-      status = NFA_STATUS_OK;
+        status = NFA_STATUS_OK;
+      } else {
+        LOG(ERROR) << StringPrintf("%s: aid is null ", __func__);
+      }
     }
   }
 
@@ -804,7 +823,15 @@ tNFA_STATUS NFA_EeAddSystemCodeRouting(uint16_t systemcode,
     LOG(ERROR) << StringPrintf("%s: Invalid NCI Version/SCBR not supported",
                                __func__);
     status = NFA_STATUS_NOT_SUPPORTED;
-  } else {
+  }
+#if (NXP_EXTNS == TRUE)
+  else if (NFA_GetNCIVersion() == NCI_VERSION_2_0) {
+    /*chiptype chnage need to updated here*/
+    LOG(ERROR) << StringPrintf("SCBR not supported");
+    status = NFA_STATUS_FAILED;
+  }
+#endif
+  else {
     tNFA_EE_API_ADD_SYSCODE* p_msg =
         (tNFA_EE_API_ADD_SYSCODE*)gki_utils->getbuf(
             sizeof(tNFA_EE_API_ADD_SYSCODE));

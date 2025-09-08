@@ -639,7 +639,7 @@ extern unsigned char appl_dta_mode_flag;
 extern tNFA_DM_CB nfa_dm_cb;
 
 void nfa_dm_init(void);
-
+void nfa_tda_init(void);
 #if (NFC_NFCEE_INCLUDED == TRUE)
 void nfa_ee_init(void);
 void nfa_hci_init(void);

@@ -1400,15 +1400,21 @@ void nfa_ee_api_remove_aid(tNFA_EE_MSG* p_data) {
 
     // Clear content of NFA_EE_CB_4_DH entry
     tNFA_EE_ECB* p_ecb = &nfa_ee_cb.ecb[NFA_EE_CB_4_DH];
-    memset(&p_ecb->aid_cfg[0], 0x00, sizeof(p_ecb->aid_cfg));
-    memset(&p_ecb->aid_len[0], 0x00, max_aid_entries);
-    memset(&p_ecb->aid_pwr_cfg[0], 0x00, max_aid_entries);
-    memset(&p_ecb->aid_rt_info[0], 0x00, max_aid_entries);
-    p_ecb->aid_entries = 0;
-    p_ecb->size_aid = 0;
+    if (p_ecb != nullptr) {
+      if (&p_ecb->aid_cfg[0] != nullptr)
+        memset(&p_ecb->aid_cfg[0], 0x00, sizeof(p_ecb->aid_cfg));
+      if (&p_ecb->aid_len[0] != nullptr)
+        memset(&p_ecb->aid_len[0], 0x00, max_aid_entries);
+      if (&p_ecb->aid_pwr_cfg[0] != nullptr)
+        memset(&p_ecb->aid_pwr_cfg[0], 0x00, max_aid_entries);
+      if (&p_ecb->aid_rt_info[0] != nullptr)
+        memset(&p_ecb->aid_rt_info[0], 0x00, max_aid_entries);
+      p_ecb->aid_entries = 0;
+      p_ecb->size_aid = 0;
 
-    p_cb->ecb_flags |= NFA_EE_ECB_FLAGS_AID;
-    nfa_ee_cb.ee_cfged |= nfa_ee_ecb_to_mask(p_ecb);
+      p_cb->ecb_flags |= NFA_EE_ECB_FLAGS_AID;
+      nfa_ee_cb.ee_cfged |= nfa_ee_ecb_to_mask(p_ecb);
+    }
   } else {
     LOG(WARNING) << StringPrintf("%s: The AID entry is not in the database",
                                  __func__);
