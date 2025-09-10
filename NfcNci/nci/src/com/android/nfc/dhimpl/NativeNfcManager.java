@@ -30,7 +30,6 @@ import android.sysprop.NfcProperties;
 import android.util.Log;
 
 import com.android.nfc.DeviceHost;
-import com.android.nfc.NfcChipType;
 import com.android.nfc.ExitFrame;
 import com.android.nfc.NfcDiscoveryParameters;
 import com.android.nfc.NfcProprietaryCaps;
@@ -480,9 +479,6 @@ public class NativeNfcManager implements DeviceHost {
 
     @Override
     public native int getMaxRoutingTableSize();
-
-    @Override
-    public native NfcChipType getChipType();
 
     public native boolean isMultiTag();
 

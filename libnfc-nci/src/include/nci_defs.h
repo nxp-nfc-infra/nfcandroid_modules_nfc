@@ -384,7 +384,6 @@ typedef uint8_t tNCI_NFCEE_PL_CONFIG;
  * NCI Interface Mode
  **********************************************/
 #define NCI_INTERFACE_MODE_POLL_N_LISTEN 3
-#define NCI_INTERFACE_MODE_LISTEN 2
 
 /**********************************************
  * NCI Interface Types

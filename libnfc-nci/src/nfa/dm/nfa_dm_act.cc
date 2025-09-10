@@ -279,12 +279,13 @@ static void nfa_dm_nfc_response_cback(tNFC_RESPONSE_EVT event,
         /* Initialize NFA subsystems */
         nfa_sys_enable_subsystems();
 #if (NXP_EXTNS == TRUE)
+        /* uncommented after chiptype change*/
         /*For PN7220, mode set enable command will be sent on request from
          application. so Enable is simulated to continue the NFC
          initialization.*/
-        if (nfcFL.chipType != pn7160) {
+        // if (nfcFL.chipType != pn7160) {
         (*nfa_dm_cb.p_dm_cback)(NFA_DM_ENABLE_EVT, &dm_cback_data);
-         }
+        // }
 #else
         (*nfa_dm_cb.p_dm_cback)(NFA_DM_ENABLE_EVT, &dm_cback_data);
 #endif

@@ -234,12 +234,13 @@ void nfa_sys_enable_subsystems(void) {
   for (id = NFA_ID_DM; id < NFA_ID_MAX; id++) {
 #if (NXP_EXTNS == TRUE)
     /* Skipping not required sub module */
-   if (nfcFL.chipType != pn7160) {
+    /*need to uncomment after chiptype change*/
+    // if (nfcFL.chipType != pn7160) {
     if ((id == NFA_ID_EE) || (id == NFA_ID_DTA)) {
       nfa_sys_cback_notify_enable_complete(id);
       continue;
     }
-   }
+    //}
 #endif
     if (nfa_sys_cb.is_reg[id]) {
       if (nfa_sys_cb.reg[id]->enable != nullptr) {

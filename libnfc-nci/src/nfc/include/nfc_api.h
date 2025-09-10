@@ -33,20 +33,6 @@
 
 #include "vendor_cfg.h"
 
-#if (NXP_EXTNS == TRUE)
-#define NXP_EN_PN7150 0
-#define NXP_EN_PN7160 1
-#define NXP_EN_PN7161 1
-#define NXP_EN_PN7220 1
-#define NXP_EN_PN7221 1
-#define NXP_EN_PN7222 0
-#define NXP_EN_PN7223 0
-#define NXP_ANDROID_VER (16U)         /* NXP android version */
-#define NFC_NXP_MW_VERSION_MAJ (0x00) /* MW Major Version */
-#define NFC_NXP_MW_VERSION_MIN (0x01) /* MW Minor Version */
-#define NFC_NXP_MW_RC_VERSION (0x00)  /* MW RC Version */
-#endif
-
 /* NFC application return status codes */
 /* Command succeeded    */
 #define NFC_STATUS_OK NCI_STATUS_OK

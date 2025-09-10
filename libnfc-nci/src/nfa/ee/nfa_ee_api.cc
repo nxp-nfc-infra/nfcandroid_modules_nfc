@@ -243,7 +243,8 @@ tNFA_STATUS NFA_EeRegister(tNFA_EE_CBACK* p_cback) {
         (tNFA_EE_API_REGISTER*)gki_utils->getbuf(sizeof(tNFA_EE_API_REGISTER));
     if (p_msg != nullptr) {
 #if (NXP_EXTNS == TRUE)
-      if (nfcFL.chipType != pn7160) {
+      /* uncommented after chiptype change*/
+      // if (nfcFL.chipType != pn7160) {
       /* TODO: HCE initialization is intact with NFCEE initialization.
        * As we are not doing NFCEE init therefore hardcoding NFCEE state
        * INIT_DONE and notifying the upper layer.This may be removed during CT
@@ -251,7 +252,7 @@ tNFA_STATUS NFA_EeRegister(tNFA_EE_CBACK* p_cback) {
        */
       nfa_ee_cb.em_state = NFA_EE_EM_STATE_INIT_DONE;
       nfa_sys_cback_notify_enable_complete(NFA_ID_EE);
-      }
+      //}
 #endif
       p_msg->hdr.event = NFA_EE_API_REGISTER_EVT;
       p_msg->p_cback = p_cback;
