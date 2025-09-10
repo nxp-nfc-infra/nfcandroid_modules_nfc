@@ -80,8 +80,11 @@ extern void delete_stack_non_volatile_store(bool forceDelete);
 ****************************************************************************/
 tNFC_CB nfc_cb;
 
+#if (NXP_EXTNS == TRUE)
+tNfc_featureList nfcFL;
+#endif
 #if (NFC_RW_ONLY == FALSE)
-#define NFC_NUM_INTERFACE_MAP 2
+#define NFC_NUM_INTERFACE_MAP 3
 #else
 #define NFC_NUM_INTERFACE_MAP 1
 #endif
@@ -96,6 +99,10 @@ static const tNCI_DISCOVER_MAPS nfc_interface_mapping[NFC_NUM_INTERFACE_MAP] = {
     /* this can not be set here due to 2079xB0 NFCC issues */
     {NCI_PROTOCOL_NFC_DEP, NCI_INTERFACE_MODE_POLL_N_LISTEN,
      NCI_INTERFACE_NFC_DEP}
+#endif
+#if (NXP_EXTNS == TRUE)
+    ,
+    {NCI_PROTOCOL_ISO_DEP, NCI_INTERFACE_MODE_LISTEN, NCI_INTERFACE_ISO_DEP}
 #endif
 };
 

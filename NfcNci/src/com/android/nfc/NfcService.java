@@ -125,6 +125,7 @@ import androidx.annotation.VisibleForTesting;
 
 import com.android.nfc.DeviceHost.DeviceHostListener;
 import com.android.nfc.DeviceHost.TagEndpoint;
+import com.android.nfc.NfcChipType;
 import com.android.nfc.cardemulation.CardEmulationManager;
 import com.android.nfc.cardemulation.util.StatsdUtils;
 import com.android.nfc.dhimpl.NativeNfcManager;
@@ -4688,9 +4689,22 @@ public class NfcService implements DeviceHostListener, ForegroundUtils.Callback 
         if (mReaderModeParams != null && mReaderModeParams.annotation != null) {
             paramsBuilder.setTechAPollingLoopAnnotation(mReaderModeParams.annotation);
         }
-        if (mIsHceCapable) {
-            // Host routing is always enabled, provided we aren't in reader mode
-            if (mReaderModeParams == null || mReaderModeParams.flags == DISABLE_POLLING_FLAGS) {
+        if (mIsHceCapable &&
+            mScreenState >= ScreenStateHelper.SCREEN_STATE_ON_LOCKED &&
+            mReaderModeParams == null) {
+          NfcChipType chipType = mDeviceHost.getChipType();
+          if (chipType == NfcChipType.PN7220 ||
+              chipType == NfcChipType.PN7221) {
+            if (mScreenState == ScreenStateHelper.SCREEN_STATE_ON_UNLOCKED) {
+              // Host routing is enabled only when the screen is un-locked.
+              paramsBuilder.setEnableHostRouting(true);
+            } else {
+              // Host routing is not enabled when the screen is locked.
+              paramsBuilder.setEnableHostRouting(false);
+            }
+          } else {
+            // Host routing is always enabled at lock screen or later, provided
+            // we aren't in reader mode
                 paramsBuilder.setEnableHostRouting(true);
             }
         }
