@@ -3064,11 +3064,11 @@ void doStartupConfig() {
     p_nfa_dm_rf_disc_freq_cfg = &nfa_dm_disc_freq_cfg;
   }
 #if (NXP_EXTNS == TRUE)
-        if (nfcFL.chipType == pn7160) {
-          // configure NFCC_CONFIG_CONTROL- NFCC allowed to manage RF
-          // configuration.
-          nfcManager_configNfccConfigControl(true);
-        }
+    if (nfcFL.chipType == pn7160) {
+       // configure NFCC_CONFIG_CONTROL- NFCC allowed to manage RF
+       // configuration.
+       nfcManager_configNfccConfigControl(true);
+    }
 #else
   // configure NFCC_CONFIG_CONTROL- NFCC allowed to manage RF configuration.
   nfcManager_configNfccConfigControl(true);
