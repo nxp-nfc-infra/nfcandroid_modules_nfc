@@ -33,6 +33,11 @@
 #include "nfa_wlc_int.h"
 #include "nfc_int.h"
 
+#if (NXP_EXTNS == TRUE)
+#include "nfa_sys_int.h"
+#include "nfc_config.h"
+#endif
+
 using android::base::StringPrintf;
 
 /*****************************************************************************
@@ -1361,6 +1366,74 @@ tNFA_STATUS NFA_ChangeDiscoveryTech(tNFA_TECHNOLOGY_MASK pollTech,
 
   return (NFA_STATUS_FAILED);
 }
+#if (NXP_EXTNS == TRUE)
+/*******************************************************************************
+**
+** Function         NFA_GetChipVersion
+**
+** Description      This function provide right Chip version.
+
+**
+** Returns          MW version
+**
+*******************************************************************************/
+tNFC_chipType NFA_GetChipVersion() {
+  tEnableChip enableChip;
+  if (NfcConfig::hasKey(NAME_NXP_CHIP_TYPE)) {
+    enableChip = NfcConfig::getUnsigned(NAME_NXP_CHIP_TYPE);
+    LOG(INFO) << StringPrintf("%s: 0x%x ", __func__, enableChip);
+    switch (enableChip) {
+      case 0x01:
+        nfcFL.chipType = pn7160;
+        break;
+      case 0x04:
+        nfcFL.chipType = pn7220;
+        break;
+      default:
+        nfcFL.chipType = pn7220;
+    }
+  } else {
+    LOG(INFO) << StringPrintf("%s: Unable to find Config", __func__);
+    nfcFL.chipType = pn7220;
+  }
+  LOG(INFO) << StringPrintf("%s: 0x%x ", __func__, nfcFL.chipType);
+  return nfcFL.chipType;
+}
+
+/*******************************************************************************
+**
+** Function         NFA_GetMwVersion
+**
+** Description      This function provide right MW version.
+
+**
+** Returns          MW version
+**
+*******************************************************************************/
+tNFA_MW_VERSION NFA_GetMwVersion() {
+  tNFA_MW_VERSION mwVer;
+
+  mwVer.validation = (NXP_EN_PN7150 << 0);
+  mwVer.validation |= (NXP_EN_PN7160 << 1);
+  mwVer.validation |= (NXP_EN_PN7161 << 2);
+  mwVer.validation |= (NXP_EN_PN7220 << 3);
+  mwVer.validation |= (NXP_EN_PN7221 << 4);
+  mwVer.validation |= (NXP_EN_PN7222 << 5);
+  mwVer.validation |= (NXP_EN_PN7223 << 6);
+
+  mwVer.android_version = NXP_ANDROID_VER;
+  LOG(INFO) << StringPrintf("NFC MW Major Version: 0x%x",
+                            NFC_NXP_MW_VERSION_MAJ);
+  LOG(INFO) << StringPrintf("NFC MW Minor Version: 0x%x",
+                            NFC_NXP_MW_VERSION_MIN);
+  mwVer.major_version = NFC_NXP_MW_VERSION_MAJ;
+  mwVer.minor_version = NFC_NXP_MW_VERSION_MIN;
+  mwVer.rc_version = NFC_NXP_MW_RC_VERSION;
+  LOG(INFO) << StringPrintf("mwVer:Major=0x%x,Minor=0x%x", mwVer.major_version,
+                            mwVer.minor_version);
+  return mwVer;
+}
+#endif
 
 /*******************************************************************************
 **

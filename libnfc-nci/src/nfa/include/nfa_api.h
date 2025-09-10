@@ -33,6 +33,9 @@
 #include "rw_api.h"
 #include "tags_defs.h"
 
+#if (NXP_EXTNS == TRUE)
+#include "Nxp_Features.h"
+#endif
 /*****************************************************************************
 **  Constants and data types
 *****************************************************************************/
@@ -163,6 +166,9 @@ typedef uint8_t tNFA_PROTOCOL_MASK;
 #define NFA_DM_NFCC_TRANSPORT_ERR_EVT 7
 /* Result of NFA_SetPowerSubStateForScreenState */
 #define NFA_DM_SET_POWER_SUB_STATE_EVT 11
+#if (NXP_EXTNS == TRUE)
+typedef uint8_t tEnableChip;
+#endif
 /* T1T HR length            */
 #define NFA_T1T_HR_LEN T1T_HR_LEN
 /* Max UID length of T1/T2  */
@@ -265,6 +271,17 @@ typedef enum {
   NFA_DTA_HCEF_MODE = 0x00000004,
   NFA_DTA_CR8 = 0x00000080,
 } tNFA_eDtaModes;
+
+#if (NXP_EXTNS == TRUE)
+typedef struct {
+  uint32_t validation; /* indicates on which platform validation is done like
+                         pn547, pn548, pn65T, pn66T */
+  uint8_t android_version; /* Nxp's android version */
+  uint8_t major_version;   /* Major Version of MW*/
+  uint8_t minor_version;   /* Minor Version of Mw */
+  uint8_t rc_version;      /*RC version*/
+} tNFA_MW_VERSION;
+#endif
 
 /* NFA Connection Callback Events */
 #define NFA_POLL_ENABLED_EVT 0  /* Polling enabled event */
@@ -1422,5 +1439,30 @@ tNFA_STATUS NFA_ChangeDiscoveryTech(tNFA_TECHNOLOGY_MASK pollTech,
 **
 *******************************************************************************/
 bool NFA_IsRfRemovalDetectionSupported();
+
+#if (NXP_EXTNS == TRUE)
+/*******************************************************************************
+**
+** Function:        NFA_GetChipVersion
+**
+** Description:     This function gets the Chip Version
+**
+** Returns:         First 8 bit Major Version
+**                  Last 8 bit Minor Version
+**
+*******************************************************************************/
+extern tNFC_chipType NFA_GetChipVersion();
+/*******************************************************************************
+**
+** Function:        NFA_GetMwVersion
+**
+** Description:     This function gets the Middleware Version
+**
+** Returns:         First 8 bit Major Version
+**                  Last 8 bit Minor Version
+**
+*******************************************************************************/
+extern tNFA_MW_VERSION NFA_GetMwVersion();
+#endif
 
 #endif /* NFA_API_H */

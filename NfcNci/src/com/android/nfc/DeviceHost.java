@@ -346,6 +346,11 @@ public interface DeviceHost {
     void enableVendorNciNotifications(boolean enabled);
 
     /**
+     * returns the controller chip type
+     */
+    public NfcChipType getChipType();
+
+    /**
      * Get the active NFCEE list
      */
     public Map<String, Integer> dofetchActiveNfceeList();

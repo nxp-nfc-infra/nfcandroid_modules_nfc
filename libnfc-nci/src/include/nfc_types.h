@@ -18,7 +18,9 @@
 
 #ifndef NFC_TYPES_H
 #define NFC_TYPES_H
-
+#if (NXP_EXTNS == TRUE)
+#include "Nxp_Features.h"
+#endif
 /****************************************************************************
 ** NFC_HDR header definition for NFC messages
 *****************************************************************************/
