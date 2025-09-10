@@ -824,8 +824,7 @@ tNFA_STATUS NFA_EeAddSystemCodeRouting(uint16_t systemcode,
     status = NFA_STATUS_NOT_SUPPORTED;
   }
 #if (NXP_EXTNS == TRUE)
-  else if (NFA_GetNCIVersion() == NCI_VERSION_2_0) {
-    /*chiptype chnage need to updated here*/
+  else if (NFA_GetChipVersion() != pn7160){
     LOG(ERROR) << StringPrintf("SCBR not supported");
     status = NFA_STATUS_FAILED;
   }
