@@ -14,6 +14,7 @@ android_test {
         "android.test.mock.stubs.system",
         "framework-nfc.impl",
         "com.nxp.nfc",
+        "com.nxp.emvco",
         "unsupportedappusage",
         "NfcNciApex"
     ],

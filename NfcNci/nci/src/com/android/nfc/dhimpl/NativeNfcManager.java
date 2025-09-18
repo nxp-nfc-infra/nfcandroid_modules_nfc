@@ -539,6 +539,10 @@ public class NativeNfcManager implements DeviceHost {
         mListener.onRemoteFieldActivated();
     }
 
+    private void notifyNfcHalBinderDied() {
+        mListener.onNfcHalBinderDied();
+    }
+
     private void notifyRfFieldDeactivated() {
         mListener.onRemoteFieldDeactivated();
     }

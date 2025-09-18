@@ -72,12 +72,14 @@ android_app {
     ],
     uses_libs: [
         "com.nxp.nfc",
+        "com.nxp.emvco",
     ],
     libs: [
         // order matters: classes in framework-nfc are resolved before framework, meaning
         // @hide APIs in framework-nfc are resolved before @SystemApi stubs in framework
         "framework-nfc.impl",
         "com.nxp.nfc",
+        "com.nxp.emvco",
         "framework",
 
         // if sdk_version="" this gets automatically included, but here we need to add manually.
@@ -112,6 +114,7 @@ android_app {
     ],
     uses_libs: [
         "com.nxp.nfc",
+        "com.nxp.emvco",
     ],
     libs: [
         "android.nfc.flags-aconfig-java",
@@ -122,6 +125,7 @@ android_app {
         "framework-configinfrastructure.stubs.module_lib",
         "framework-nfc.impl",
         "com.nxp.nfc",
+        "com.nxp.emvco",
         "framework-permission-s.stubs.module_lib",
         "framework-permission.stubs.module_lib",
         "framework-statsd.stubs.module_lib",

@@ -167,6 +167,8 @@ typedef uint8_t tNFA_PROTOCOL_MASK;
 /* Result of NFA_SetPowerSubStateForScreenState */
 #define NFA_DM_SET_POWER_SUB_STATE_EVT 11
 #if (NXP_EXTNS == TRUE)
+/* NFC HAL Died */
+#define NFA_DM_NFC_HAL_BINDER_DIED_EVT 12
 typedef uint8_t tEnableChip;
 #endif
 /* T1T HR length            */
