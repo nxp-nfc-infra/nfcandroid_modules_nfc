@@ -44,7 +44,10 @@ uint8_t nci_snd_core_reset(uint8_t reset_type);
 uint8_t nci_snd_core_init(uint8_t nci_version);
 uint8_t nci_snd_core_get_config(uint8_t* param_ids, uint8_t num_ids);
 uint8_t nci_snd_core_set_config(uint8_t* p_param_tlvs, uint8_t tlv_size);
-
+uint8_t nci_snd_core_set_config_extn(uint8_t tag_len, uint8_t* p_param_tlvs,
+                                     uint8_t tlv_size);
+uint8_t nci_snd_core_get_config_extn(uint8_t tag_len, uint8_t* param_ids,
+                                     uint8_t num_ids);
 uint8_t nci_snd_core_conn_create(uint8_t dest_type, uint8_t num_tlv,
                                  uint8_t tlv_size, uint8_t* p_param_tlvs);
 uint8_t nci_snd_core_conn_close(uint8_t conn_id);

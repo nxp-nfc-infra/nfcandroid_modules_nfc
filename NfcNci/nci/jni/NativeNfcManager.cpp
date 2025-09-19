@@ -34,6 +34,7 @@
 #include "NativeT4tNfcee.h"
 #include "NfcJniUtil.h"
 #include "NfcTag.h"
+#include "PowerSwitch.h"
 #include "NfceeManager.h"
 #include "RoutingManager.h"
 #include "SyncEvent.h"
@@ -915,6 +916,7 @@ void nfaDeviceManagementCallback(uint8_t dmEvent,
     case NFA_DM_SET_CONFIG_EVT:  // result of NFA_SetConfig
       LOG(DEBUG) << StringPrintf("%s: NFA_DM_SET_CONFIG_EVT", __func__);
       {
+        PowerSwitch::getInstance().deviceManagementCallback(dmEvent, eventData);
         SyncEventGuard guard(gNfaSetConfigEvent);
         gNfaSetConfigEvent.notifyOne();
       }
@@ -923,6 +925,7 @@ void nfaDeviceManagementCallback(uint8_t dmEvent,
     case NFA_DM_GET_CONFIG_EVT: /* Result of NFA_GetConfig */
       LOG(DEBUG) << StringPrintf("%s: NFA_DM_GET_CONFIG_EVT", __func__);
       {
+        PowerSwitch::getInstance().deviceManagementCallback(dmEvent, eventData);
         SyncEventGuard guard(gNfaGetConfigEvent);
         if (eventData->status == NFA_STATUS_OK &&
             eventData->get_config.tlv_size <= sizeof(gConfig)) {
@@ -2377,9 +2380,10 @@ static void nfcManager_doSetScreenState(JNIEnv* e, jobject o,
     return;
   }
 
-  if (prevScreenState == NFA_SCREEN_STATE_OFF_LOCKED ||
-      prevScreenState == NFA_SCREEN_STATE_OFF_UNLOCKED ||
-      prevScreenState == NFA_SCREEN_STATE_ON_LOCKED) {
+  if ((nfcFL.chipType == pn7160) &&
+      (prevScreenState == NFA_SCREEN_STATE_OFF_LOCKED ||
+       prevScreenState == NFA_SCREEN_STATE_OFF_UNLOCKED ||
+       prevScreenState == NFA_SCREEN_STATE_ON_LOCKED)) {
     SyncEventGuard guard(sNfaSetPowerSubState);
     status = NFA_SetPowerSubStateForScreenState(state);
     if (status != NFA_STATUS_OK) {
@@ -2418,8 +2422,7 @@ static void nfcManager_doSetScreenState(JNIEnv* e, jobject o,
         NCI_LISTEN_DH_NFCEE_ENABLE_MASK | NCI_POLLING_DH_ENABLE_MASK;
   }
 
-  if (!sIsAlwaysPolling) {
-#if (NXP_EXTNS != TRUE)
+  if (nfcFL.chipType == pn7160) {
     SyncEventGuard guard(gNfaSetConfigEvent);
     status = NFA_SetConfig(NCI_PARAM_ID_CON_DISCOVERY_PARAM,
                            NCI_PARAM_LEN_CON_DISCOVERY_PARAM, &discovry_param);
@@ -2430,7 +2433,6 @@ static void nfcManager_doSetScreenState(JNIEnv* e, jobject o,
                                  __FUNCTION__);
       return;
     }
-#endif
   }
   // skip remaining SetScreenState tasks when trying to silent recover NFCC
   if (recovery_option && sIsRecovering) {
@@ -2438,7 +2440,8 @@ static void nfcManager_doSetScreenState(JNIEnv* e, jobject o,
     return;
   }
 
-  if (prevScreenState == NFA_SCREEN_STATE_ON_UNLOCKED) {
+  if ((nfcFL.chipType == pn7160) &&
+      (prevScreenState == NFA_SCREEN_STATE_ON_UNLOCKED)) {
     SyncEventGuard guard(sNfaSetPowerSubState);
     status = NFA_SetPowerSubStateForScreenState(state);
     if (status != NFA_STATUS_OK) {
@@ -2454,15 +2457,7 @@ static void nfcManager_doSetScreenState(JNIEnv* e, jobject o,
     prevScreenState = state;
     return;
   }
-/*To be uncommented as part of Chiptype update*/
-  /* if ((state == NFA_SCREEN_STATE_OFF_LOCKED ||
-        state == NFA_SCREEN_STATE_OFF_UNLOCKED) &&
-       (prevScreenState == NFA_SCREEN_STATE_ON_UNLOCKED ||
-        prevScreenState == NFA_SCREEN_STATE_ON_LOCKED) &&
-       (!sSeRfActive)) {
-     // screen turns off, disconnect tag if connected
-     nativeNfcTag_doDisconnect(NULL, NULL);
-   }*/
+
   if ((state == NFA_SCREEN_STATE_OFF_LOCKED ||
        state == NFA_SCREEN_STATE_OFF_UNLOCKED) &&
       (prevScreenState == NFA_SCREEN_STATE_ON_UNLOCKED ||
@@ -2470,14 +2465,16 @@ static void nfcManager_doSetScreenState(JNIEnv* e, jobject o,
       (!sSeRfActive)) {
     // screen turns off, disconnect tag if connected
     nativeNfcTag_doDisconnect(NULL, NULL);
-    startRfDiscovery(false);
-    sDiscoveryEnabled = false;
-    stopPolling_rfDiscoveryDisabled();
-    startRfDiscovery(true);
-    sDiscoveryEnabled = true;
+    if (nfcFL.chipType == pn7220) {
+      startRfDiscovery(false);
+      sDiscoveryEnabled = false;
+      stopPolling_rfDiscoveryDisabled();
+      startRfDiscovery(true);
+      sDiscoveryEnabled = true;
+    }
   }
 
-  if ((state == NFA_SCREEN_STATE_ON_UNLOCKED) &&
+  if ((nfcFL.chipType == pn7220) && (state == NFA_SCREEN_STATE_ON_UNLOCKED) &&
       (prevScreenState == NFA_SCREEN_STATE_OFF_UNLOCKED ||
        prevScreenState == NFA_SCREEN_STATE_ON_LOCKED)) {
     startRfDiscovery(false);
@@ -2885,6 +2882,27 @@ static void sendRawVsCmdCallback(uint8_t event, uint16_t param_len,
   gSendRawVsCmdEvent.notifyOne();
 } /* namespace android */
 
+/*******************************************************************************
+**
+** Function:        nfcManager_setDynamicPowerConfig
+**
+** Description:     Sets the power configuration to controller
+**
+** Parameter:       power configuration
+**
+** Returns:         Return set power configuration results.
+**                  Return "Success" when power configuration successfully
+**                  applied to controller.
+**                  Returns VALUE_ALREADY_EXISTS, if given power configuration
+**                  already exist in controller.
+**                  Otherwise, "False" shall be returned.
+**
+*******************************************************************************/
+jobject nfcManager_setDynamicPowerConfig(JNIEnv* env, jobject obj,
+                                         jbyteArray pwr_config) {
+  return PowerSwitch::getInstance().setDynamicPowerConfig(env, obj, pwr_config);
+}
+
 /*****************************************************************************
 **
 ** JNI functions for android-4.0.1_r1
@@ -2989,6 +3007,8 @@ static JNINativeMethod gMethods[] = {
 #if (NXP_EXTNS == TRUE)
     {"getChipType", "()Lcom/android/nfc/NfcChipType;",
      (void*)nfcManager_getChipType},
+    {"setDynamicPowerConfig", "([B)Lcom/nxp/nfc/DynamicPowerResult;",
+     (void*)nfcManager_setDynamicPowerConfig},
 #endif
     {"injectNtf", "([B)V", (void*)nfcManager_injectNtf},
     {"doDetectEpRemoval", "(I)Z", (void*)nfcManager_doDetectEpRemoval},

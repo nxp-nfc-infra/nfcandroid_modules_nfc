@@ -866,6 +866,26 @@ tNFC_STATUS NFC_SetConfig(uint8_t tlv_size, uint8_t* p_param_tlvs) {
 
 /*******************************************************************************
 **
+** Function         NFC_SetConfigExtn
+**
+** Description      This function is called to send the configuration parameter
+**                  TLV to NFCC. The response from NFCC is reported by
+**                  tNFC_RESPONSE_CBACK as NFC_SET_CONFIG_REVT.
+**
+** Parameters       tag_len - the length of the TAG.
+                    tlv_size - the length of p_param_tlvs.
+**                  p_param_tlvs - the parameter ID/Len/Value list
+**
+** Returns          tNFC_STATUS
+**
+*******************************************************************************/
+tNFC_STATUS NFC_SetConfigExtn(uint8_t tag_len, uint8_t tlv_size,
+                              uint8_t* p_param_tlvs) {
+  return nci_snd_core_set_config_extn(tag_len, p_param_tlvs, tlv_size);
+}
+
+/*******************************************************************************
+**
 ** Function         NFC_GetConfig
 **
 ** Description      This function is called to retrieve the parameter TLV from
@@ -880,6 +900,26 @@ tNFC_STATUS NFC_SetConfig(uint8_t tlv_size, uint8_t* p_param_tlvs) {
 *******************************************************************************/
 tNFC_STATUS NFC_GetConfig(uint8_t num_ids, uint8_t* p_param_ids) {
   return nci_snd_core_get_config(p_param_ids, num_ids);
+}
+
+/*******************************************************************************
+**
+** Function         NFC_GetConfigExtn
+**
+** Description      This function is called to retrieve the parameter TLV from
+**                  NFCC. The response from NFCC is reported by
+**                  tNFC_RESPONSE_CBACK as NFC_GET_CONFIG_REVT.
+**
+** Parameters       tag_len - Length of the TAG
+**                  num_ids - the number of parameter IDs
+**                  p_param_ids - the parameter ID list.
+**
+** Returns          tNFC_STATUS
+**
+*******************************************************************************/
+extern tNFC_STATUS NFC_GetConfigExtn(uint8_t tag_len, uint8_t num_ids,
+                                     uint8_t* p_param_ids) {
+  return nci_snd_core_get_config_extn(tag_len, p_param_ids, num_ids);
 }
 
 /*******************************************************************************

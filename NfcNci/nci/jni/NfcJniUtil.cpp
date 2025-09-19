@@ -13,7 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+/******************************************************************************
+ *
+ *  The original Work has been changed by NXP
+ *
+ *  Copyright 2025 NXP
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
 #include "NfcJniUtil.h"
 
 #include <android-base/logging.h>
@@ -24,6 +42,7 @@
 #include <nativehelper/ScopedLocalRef.h>
 
 #include "NativeWlcManager.h"
+#include "PowerSwitch.h"
 #include "RoutingManager.h"
 
 using android::base::StringPrintf;
@@ -53,6 +72,7 @@ jint JNI_OnLoad(JavaVM* jvm, void*) {
   if (android::register_com_android_nfc_NativeT4tNfcee(e) == -1) return JNI_ERR;
   if (android::register_com_android_nfc_NativeNfcTda(e) == -1) return JNI_ERR;
   if (android::register_com_android_nfc_NativeNfcTag(e) == -1) return JNI_ERR;
+  if (PowerSwitch::getInstance().initializeJNIElements(e) == -1) return JNI_ERR;
   if (RoutingManager::getInstance().registerJniFunctions(e) == -1)
     return JNI_ERR;
   if (NativeWlcManager::getInstance().registerJniFunctions(e) == -1)

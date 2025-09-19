@@ -13,7 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+/******************************************************************************
+ *
+ *  The original Work has been changed by NXP
+ *
+ *  Copyright 2025 NXP
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
 package com.android.nfc;
 
 import static android.Manifest.permission.BIND_NFC_SERVICE;
@@ -60,9 +78,11 @@ import android.nfc.ErrorCodes;
 import android.nfc.FormatException;
 import android.nfc.IAppCallback;
 import android.nfc.INfcAdapter;
+import com.nxp.nfc.INxpNfcAdapter;
 import com.nxp.nfc.INxpNfcTDA;
 import com.nxp.nfc.NfcTDAInfo;
 import com.nxp.nfc.TdaResult;
+import com.nxp.nfc.DynamicPowerResult;
 import android.nfc.INfcAdapterExtras;
 import android.nfc.INfcCardEmulation;
 import android.nfc.INfcControllerAlwaysOnListener;
@@ -251,8 +271,9 @@ public class NfcService implements DeviceHostListener, ForegroundUtils.Callback 
     static final int MSG_OPEN_TDA = 30;
     static final int MSG_TRANSCEIVE_TDA = 31;
     static final int MSG_CLOSE_TDA = 32;
+    static final int MSG_SET_POWER_CONFIG = 33;
 
-    static final int MSG_NFC_HAL_DIED = 33;
+    static final int MSG_NFC_HAL_DIED = 34;
     // Negative value for NO polling delay
     static final int NO_POLL_DELAY = -1;
 
@@ -480,6 +501,7 @@ public class NfcService implements DeviceHostListener, ForegroundUtils.Callback 
     NfcAdapterService mNfcAdapter;
     NxpNfcTdaProfile mNxpNfcTdaProfile;
     NfcDtaService mNfcDtaService;
+    NxpNfcAdapterService mNxpNfcAdapter;
     RoutingTableParser mRoutingTableParser;
     boolean mIsDebugBuild;
     boolean mIsHceCapable;
@@ -543,6 +565,7 @@ public class NfcService implements DeviceHostListener, ForegroundUtils.Callback 
 
     private final boolean mIsTagAppPrefSupported;
     private int mTagAppBlockListHash;
+    private Bundle mDynamicPowerResultBundle = new Bundle();
 
     private final boolean mIsAlwaysOnSupported;
     private final Set<INfcControllerAlwaysOnListener> mAlwaysOnListeners =
@@ -1192,6 +1215,7 @@ public class NfcService implements DeviceHostListener, ForegroundUtils.Callback 
         mRoutingTableParser = mNfcInjector.getRoutingTableParser();
         mT4tNdefNfceeService = new T4tNdefNfceeService();
         Log.i(TAG, "Starting NFC service");
+        mNxpNfcAdapter = new NxpNfcAdapterService();
         mProfileDiscovery = NxpProfileDiscovery.getInstance(mContext);
         mProfileDiscovery.registerNFCStateChangeCallback(mNfcStateChangeCallback);
         mNxpNfcTdaProfile = new NxpNfcTdaProfile();
@@ -2594,6 +2618,18 @@ public class NfcService implements DeviceHostListener, ForegroundUtils.Callback 
             }
         }
 
+        /**
+         * An interface for nxp extensions
+        */
+        @Override
+        public IBinder getNfcAdapterVendorInterface(String vendor) {
+            if(vendor.equalsIgnoreCase("nxp")) {
+                return (IBinder) mNxpNfcAdapter;
+            } else {
+                return null;
+            }
+        }
+
         @Override
         public boolean setNfcSecure(boolean enable) {
             NfcPermissions.enforceAdminPermissions(mContext);
@@ -3731,7 +3767,27 @@ public class NfcService implements DeviceHostListener, ForegroundUtils.Callback 
                 }
             }
         }
-    }
+   }
+    final class NxpNfcAdapterService extends INxpNfcAdapter.Stub {
+
+        @Override
+        public DynamicPowerResult setDynamicPowerConfig(byte[] pwrConfig) {
+          NfcPermissions.enforceUserPermissions(mContext);
+          Bundle writeBundle = new Bundle();
+          writeBundle.putByteArray("pwrConfig", pwrConfig);
+          try {
+            sendMessage(NfcService.MSG_SET_POWER_CONFIG, writeBundle);
+            //synchronized (mT4tNfcEeObj) { mT4tNfcEeObj.wait(1000); }
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
+          DynamicPowerResult DynamicPowerResult =
+              mDynamicPowerResultBundle.getParcelable("DynamicPowerResult");
+          mDynamicPowerResultBundle.clear();
+          return DynamicPowerResult;
+        }
+   }
+
     final class NxpNfcTdaProfile extends INxpNfcTDA.Stub {
 
       @Override
@@ -5597,6 +5653,16 @@ public class NfcService implements DeviceHostListener, ForegroundUtils.Callback 
                       mProfileDiscovery.getCurrentDiscoveryMode()) {
                       mProfileDiscovery.setEMVCoMode(0, false);
                   }
+                  break;
+                }
+                case MSG_SET_POWER_CONFIG: {
+                  Bundle mPwrConfigBundle = (Bundle)msg.obj;
+                  byte[] pwrConfig = mPwrConfigBundle.getByteArray("pwrConfig");
+                  DynamicPowerResult DynamicPowerResult =
+                      mDeviceHost.setDynamicPowerConfig(pwrConfig);
+                  mDynamicPowerResultBundle.putParcelable("DynamicPowerResult",
+                                                          DynamicPowerResult);
+                  //synchronized (mT4tNfcEeObj) { mT4tNfcEeObj.notify(); }
                   break;
                 }
                 default:

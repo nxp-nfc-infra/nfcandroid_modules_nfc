@@ -76,7 +76,9 @@ const tNFA_DM_ACTION nfa_dm_action[] = {
     nfa_dm_act_disable_timeout,      /* NFA_DM_TIMEOUT_DISABLE_EVT           */
     nfa_dm_set_power_sub_state,      /* NFA_DM_API_SET_POWER_SUB_STATE_EVT   */
     nfa_dm_act_send_raw_vs,          /* NFA_DM_API_SEND_RAW_VS_EVT           */
-    nfa_dm_act_change_discovery_tech /* NFA_DM_API_CHANGE_DISCOVERY_TECH_EVT */
+    nfa_dm_act_change_discovery_tech, /* NFA_DM_API_CHANGE_DISCOVERY_TECH_EVT */
+    nfa_dm_set_config_extn,          /* NFA_DM_API_SET_CONFIG_EXTN_EVT       */
+    nfa_dm_get_config_extn           /* NFA_DM_API_GET_CONFIG_EXTN_EVT       */
 };
 
 /*****************************************************************************
@@ -447,6 +449,49 @@ tNFA_STATUS nfa_dm_check_set_config(uint8_t tlv_list_len, uint8_t* p_tlv_list,
 
 /*******************************************************************************
 **
+** Function         nfa_dm_check_set_config_extn
+**
+** Description      sends extenstion TAG configuration to controller
+**
+**
+** Returns          tNFA_STATUS
+**
+*******************************************************************************/
+tNFA_STATUS nfa_dm_check_set_config_extn(uint8_t tag_len, uint8_t tlv_list_len,
+                                         uint8_t* p_tlv_list) {
+  tNFC_STATUS nfc_status;
+  uint32_t cur_bit;
+
+  /* We only allow 32 pending SET_CONFIGs */
+  if (nfa_dm_cb.setcfg_pending_num >= NFA_DM_SETCONFIG_PENDING_MAX) {
+    LOG(ERROR) << StringPrintf(
+        "error: pending number of SET_CONFIG "
+        "exceeded");
+    return NFA_STATUS_FAILED;
+  }
+
+  nfc_status = NFC_SetConfigExtn(tag_len, tlv_list_len, p_tlv_list);
+
+  if (nfc_status == NFC_STATUS_OK) {
+    /* Keep track of whether we will need to notify NFA_DM_SET_CONFIG_EVT on
+     * NFC_SET_CONFIG_REVT */
+
+    /* Get the next available bit offset for this setconfig (based on how many
+     * SetConfigs are outstanding) */
+    cur_bit = (uint32_t)(1 << nfa_dm_cb.setcfg_pending_num);
+
+    /* If setconfig is due to NFA_SetConfig: then set the bit
+     * (NFA_DM_SET_CONFIG_EVT needed on NFC_SET_CONFIG_REVT) */
+    nfa_dm_cb.setcfg_pending_mask |= cur_bit;
+
+    /* Increment setcfg_pending counter */
+    nfa_dm_cb.setcfg_pending_num++;
+  }
+  return nfc_status;
+}
+
+/*******************************************************************************
+**
 ** Function         nfa_dm_nfc_revt_2_str
 **
 ** Description      convert nfc revt to string
@@ -500,6 +545,10 @@ static std::string nfa_dm_evt_2_str(uint16_t event) {
       return "NFA_DM_TIMEOUT_DISABLE_EVT";
     case NFA_DM_API_SET_POWER_SUB_STATE_EVT:
       return "NFA_DM_API_SET_POWER_SUB_STATE_EVT";
+    case NFA_DM_API_SET_CONFIG_EXTN_EVT:
+      return "NFA_DM_API_SET_CONFIG_EXTN_EVT";
+    case NFA_DM_API_GET_CONFIG_EXTN_EVT:
+      return "NFA_DM_API_GET_CONFIG_EXTN_EVT";
   }
 
   return "Unknown or Vendor Specific";

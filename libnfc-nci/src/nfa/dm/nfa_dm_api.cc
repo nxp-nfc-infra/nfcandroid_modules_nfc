@@ -323,6 +323,52 @@ tNFA_STATUS NFA_SetConfig(tNFA_PMID param_id, uint8_t length, uint8_t* p_data) {
 
 /*******************************************************************************
 **
+** Function         NFA_SetConfigExtn
+**
+** Description      Set the extention tag (more than 1Byte TAG length)
+**                  configuration parameters to NFCC. The result is
+**                  reported with an NFA_DM_SET_CONFIG_EVT in the tNFA_DM_CBACK
+**                  callback.
+**
+** Note:            If RF discovery is started,
+**                  NFA_StopRfDiscovery()/NFA_RF_DISCOVERY_STOPPED_EVT should
+**                  happen before calling this function. Most Configuration
+**                  parameters are related to RF discovery.
+**
+** Returns          NFA_STATUS_OK if successfully initiated
+**                  NFA_STATUS_BUSY if previous setting is on-going
+**                  NFA_STATUS_FAILED otherwise
+**
+*******************************************************************************/
+tNFA_STATUS NFA_SetConfigExtn(uint8_t tag_len, tNFA_PMID* param_id,
+                              uint8_t length, uint8_t* p_data) {
+  tNFA_DM_API_SET_CONFIG_EXTN* p_msg;
+
+  LOG(INFO) << StringPrintf("param_id:0x%X", *param_id);
+
+  p_msg = (tNFA_DM_API_SET_CONFIG_EXTN*)GKI_getbuf(
+      (uint16_t)(sizeof(tNFA_DM_API_SET_CONFIG_EXTN) + tag_len + length));
+  if (p_msg != nullptr) {
+    p_msg->hdr.event = NFA_DM_API_SET_CONFIG_EXTN_EVT;
+    p_msg->tag_len = tag_len;
+    p_msg->param_id = (uint8_t*)(p_msg + 1);
+    memcpy(p_msg->param_id, param_id, tag_len);
+    p_msg->length = length;
+    p_msg->p_data = (uint8_t*)(p_msg + tag_len + 1);
+
+    /* Copy parameter data */
+    memcpy(p_msg->p_data, p_data, length);
+
+    nfa_sys_sendmsg(p_msg);
+
+    return (NFA_STATUS_OK);
+  }
+
+  return (NFA_STATUS_FAILED);
+}
+
+/*******************************************************************************
+**
 ** Function         NFA_GetConfig
 **
 ** Description      Get the configuration parameters from NFCC. The result is
@@ -348,6 +394,44 @@ tNFA_STATUS NFA_GetConfig(uint8_t num_ids, tNFA_PMID* p_param_ids) {
 
     /* Copy the param IDs */
     memcpy(p_msg->p_pmids, p_param_ids, num_ids);
+
+    nfa_sys_sendmsg(p_msg);
+
+    return (NFA_STATUS_OK);
+  }
+
+  return (NFA_STATUS_FAILED);
+}
+
+/*******************************************************************************
+**
+** Function         NFA_GetConfigExtn
+**
+** Description      Get the extention tag (more than 1Byte TAG length)
+**                  configuration parameters from NFCC. The result is
+**                  reported with an NFA_DM_GET_CONFIG_EVT in the tNFA_DM_CBACK
+**                  callback.
+**
+** Returns          NFA_STATUS_OK if successfully initiated
+**                  NFA_STATUS_FAILED otherwise
+**
+******************************************************************************/
+tNFA_STATUS NFA_GetConfigExtn(uint8_t tag_len, uint8_t num_ids,
+                              tNFA_PMID* p_param_ids) {
+  tNFA_DM_API_GET_CONFIG_EXTN* p_msg;
+
+  LOG(INFO) << StringPrintf("num_ids: %i", num_ids);
+
+  p_msg = (tNFA_DM_API_GET_CONFIG_EXTN*)GKI_getbuf(
+      (uint16_t)(sizeof(tNFA_DM_API_GET_CONFIG_EXTN) + num_ids));
+  if (p_msg != nullptr) {
+    p_msg->hdr.event = NFA_DM_API_GET_CONFIG_EXTN_EVT;
+    p_msg->tag_len = tag_len;
+    p_msg->num_ids = num_ids;
+    p_msg->p_pmids = (tNFA_PMID*)(p_msg + 1);
+
+    /* Copy the param IDs */
+    memcpy(p_msg->p_pmids, p_param_ids, tag_len);
 
     nfa_sys_sendmsg(p_msg);
 

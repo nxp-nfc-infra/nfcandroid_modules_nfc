@@ -80,6 +80,7 @@ interface INfcAdapter
     boolean isControllerAlwaysOnSupported();
     void registerControllerAlwaysOnListener(in INfcControllerAlwaysOnListener listener);
     IBinder getNxpNfcTdaAdapterVendorInterface(in String vendor);
+    IBinder getNfcAdapterVendorInterface(in String vendor);
     void unregisterControllerAlwaysOnListener(in INfcControllerAlwaysOnListener listener);
     @JavaPassthrough(annotation="@android.annotation.RequiresPermission(android.Manifest.permission.WRITE_SECURE_SETTINGS)")
     boolean isTagIntentAppPreferenceSupported();

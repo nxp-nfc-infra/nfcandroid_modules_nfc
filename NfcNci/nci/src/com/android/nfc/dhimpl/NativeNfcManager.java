@@ -14,6 +14,25 @@
  * limitations under the License.
  */
 
+/******************************************************************************
+ *
+ *  The original Work has been changed by NXP
+ *
+ *  Copyright 2025 NXP
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
 package com.android.nfc.dhimpl;
 
 import static com.android.nfc.NfcStatsLog.NFC_PROPRIETARY_CAPABILITIES_REPORTED__PASSIVE_OBSERVE_MODE__MODE_UNKNOWN;
@@ -35,6 +54,7 @@ import com.android.nfc.ExitFrame;
 import com.android.nfc.NfcDiscoveryParameters;
 import com.android.nfc.NfcProprietaryCaps;
 import com.nxp.nfc.NfcTDAInfo;
+import com.nxp.nfc.DynamicPowerResult;
 import com.android.nfc.NfcService;
 import com.android.nfc.NfcStatsLog;
 import com.android.nfc.NfcVendorNciResponse;
@@ -512,6 +532,9 @@ public class NativeNfcManager implements DeviceHost {
     public byte[] transceive(byte[] in_data) {
       return mTdaMgr.transceive(in_data);
     }
+
+    @Override
+    public native DynamicPowerResult setDynamicPowerConfig(byte[] pwrConfig);
 
     @Override
     public byte closeTDA(byte tdaID, boolean standBy) {
