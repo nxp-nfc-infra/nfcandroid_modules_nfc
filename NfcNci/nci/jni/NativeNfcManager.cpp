@@ -1745,7 +1745,7 @@ static jboolean nfcManager_doInitialize(JNIEnv* e, jobject o) {
         } else {
           LOG(ERROR) << StringPrintf("nat is null");
         }
-
+#if (NXP_EXTNS != TRUE)
         // get LF_T3T_MAX
         {
           SyncEventGuard guard(gNfaGetConfigEvent);
@@ -1761,7 +1761,7 @@ static jboolean nfcManager_doInitialize(JNIEnv* e, jobject o) {
             }
           }
         }
-
+#endif
         prevScreenState = NFA_SCREEN_STATE_OFF_LOCKED;
 
         // Do custom NFCA startup configuration.
