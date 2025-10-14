@@ -15,7 +15,25 @@
  *  limitations under the License.
  *
  ******************************************************************************/
-
+/******************************************************************************
+ *
+ *  The original Work has been changed by NXP.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ *  Copyright 2025 NXP
+ *
+ ******************************************************************************/
 /******************************************************************************
  *
  *  This is the main implementation file for the NFA EE.
@@ -167,10 +185,16 @@ void nfa_ee_sys_enable(void) {
 
   if (nfa_ee_max_ee_cfg) {
     /* collect NFCEE information */
-#if (NXP_EXTNS != TRUE)
+#if (NXP_EXTNS == TRUE)
+    if (nfcFL.chipType == pn7160) {
     NFC_NfceeDiscover(true);
     nfa_sys_start_timer(&nfa_ee_cb.discv_timer, NFA_EE_DISCV_TIMEOUT_EVT,
                         NFA_EE_DISCV_TIMEOUT_VAL);
+    }
+#else
+     NFC_NfceeDiscover(true);
+     nfa_sys_start_timer(&nfa_ee_cb.discv_timer, NFA_EE_DISCV_TIMEOUT_EVT,
+                         NFA_EE_DISCV_TIMEOUT_VAL);
 #endif
   } else {
     nfa_ee_cb.em_state = NFA_EE_EM_STATE_INIT_DONE;
