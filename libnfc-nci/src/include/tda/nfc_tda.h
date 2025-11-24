@@ -217,6 +217,9 @@ typedef struct tda_control {
   transceive_buffer_t trans_buf;
   /* Ensures mutual exclusion for all client API */
   pthread_mutex_t snd_lck;
+  /* Ensures mutual exclusion for all controller rsp/ntf */
+  pthread_mutex_t rcv_lck;
+
 } tda_control_t;
 
 #ifdef __cplusplus
