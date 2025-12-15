@@ -60,8 +60,8 @@
 #define NXP_EN_PN7222 0
 #define NXP_EN_PN7223 0
 #define NXP_ANDROID_VER (16U)         /* NXP android version */
-#define NFC_NXP_MW_VERSION_MAJ (0x01) /* MW Major Version */
-#define NFC_NXP_MW_VERSION_MIN (0x01) /* MW Minor Version */
+#define NFC_NXP_MW_VERSION_MAJ (0x02) /* MW Major Version */
+#define NFC_NXP_MW_VERSION_MIN (0x00) /* MW Minor Version */
 #define NFC_NXP_MW_RC_VERSION (0x00)  /* MW RC Version */
 #endif
 
